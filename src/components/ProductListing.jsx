@@ -13,8 +13,8 @@ function ProductListing() {
     const [brands, setBrands] = useState([]);
     const [showAllCategories, setShowAllCategories] = useState(false);
     const [showAllBrands, setShowAllBrands] = useState(false);
-    const[selectedCategories , setSelectedCategories] = useState([]);
-    const[selectedBrands , setSelectedBrands] = useState([]);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [selectedBrands, setSelectedBrands] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 8;
 
@@ -26,7 +26,7 @@ function ProductListing() {
                 setProducts(data.products);
                 const prices = data.products.map((product) => product.price);
                 const lowestPrice = Math.floor(Math.min(...prices));
-                const highestPrice = Math.ceil(Math.max(...prices));
+                const highestPrice = Math.max(...prices);
 
                 setMinPrice(lowestPrice);
                 setMaxPrice(highestPrice);
@@ -49,18 +49,19 @@ function ProductListing() {
             });
     }, []);
 
-    const filteredProducts = Products.filter((product) =>{const matchesSearch =  product.title.toLowerCase().includes(Search.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 ||
-    selectedCategories.includes(product.category);
-    const matchesBrand = selectedBrands.length === 0 ||
-    selectedBrands.includes(product.brand);
-    const matchesPrice = product.price >= priceMin && product.price <= priceMax;
-    
-    return matchesSearch && matchesCategory && matchesBrand && matchesPrice;
+    const filteredProducts = Products.filter((product) => {
+        const matchesSearch = product.title.toLowerCase().includes(Search.toLowerCase());
+        const matchesCategory = selectedCategories.length === 0 ||
+            selectedCategories.includes(product.category);
+        const matchesBrand = selectedBrands.length === 0 ||
+            selectedBrands.includes(product.brand);
+        const matchesPrice = product.price >= priceMin && product.price <= priceMax;
+
+        return (matchesSearch && matchesCategory && matchesBrand && matchesPrice);
     });
 
-    console.log("Price range:", priceMin, priceMax);
-console.log("Filtered products:", filteredProducts.length);
+    //     console.log("Price range:", priceMin, priceMax);
+    // console.log("Filtered products:", filteredProducts.length);
 
     const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
     const indexOfLastProduct = currentPage * productsPerPage;
@@ -69,6 +70,32 @@ console.log("Filtered products:", filteredProducts.length);
         indexOfFirstProduct,
         indexOfLastProduct
     );
+
+    const getPageNumbers = ()=> {
+        const pages = [];
+        if(totalPages <= 5){
+            for (let i =1; i<= totalPages; i++){
+                pages.push(1);
+            }
+        }else{
+            pages.push(1);
+            if(currentPage>3){
+                pages.push("...");
+            }
+            for(
+                let i = Math.max(2,currentPage -1);
+                i <= Math.min(totalPages-1,currentPage+1);
+                i++
+            ){
+                pages.push(i);
+            }
+            if(currentPage < totalPages -2){
+                pages.push("...");
+            }
+            pages.push(totalPages);
+        }
+        return pages;
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-5 py-10">
@@ -127,18 +154,18 @@ console.log("Filtered products:", filteredProducts.length);
                             {categories.slice(0, showAllCategories ? categories.length : 8)
                                 .map((category) => (
                                     <label key={category} className="flex items-center gap-3 text-sm text-gray-700">
-                                        <input type="checkbox" checked={selectedCategories.includes(category)} onChange={(e)=>{
-                                            if(e.target.checked) {
-                                                setSelectedCategories([...selectedCategories,category]);
-                                        
-                                            }else{
+                                        <input type="checkbox" checked={selectedCategories.includes(category)} onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedCategories([...selectedCategories, category]);
+
+                                            } else {
                                                 setSelectedCategories(
-                                                    selectedCategories.filter((item)=>item !== category)
+                                                    selectedCategories.filter((item) => item !== category)
                                                 );
                                             }
                                             setCurrentPage(1);
-                                        }} 
-                                        className="accent-blue-500" />
+                                        }}
+                                            className="accent-blue-500" />
                                         <span className="capitalize">
                                             {category.replace("-", " ")}
                                         </span>
@@ -168,13 +195,13 @@ console.log("Filtered products:", filteredProducts.length);
                             {brands.slice(0, showAllBrands ? brands.length : 8)
                                 .map((brand) => (
                                     <label key={brand} className="flex items-center gap-3 text-sm text-gray-700">
-                                        <input type="checkbox" checked={selectedBrands.includes(brand)} onChange={(e)=>{
-                                            if(e.target.checked) {
-                                                setSelectedBrands([...selectedBrands,brand]);
-                                        
-                                            }else{
+                                        <input type="checkbox" checked={selectedBrands.includes(brand)} onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedBrands([...selectedBrands, brand]);
+
+                                            } else {
                                                 setSelectedBrands(
-                                                    selectedBrands.filter((item)=>item !== brand)
+                                                    selectedBrands.filter((item) => item !== brand)
                                                 );
                                             }
                                             setCurrentPage(1);
@@ -214,8 +241,9 @@ console.log("Filtered products:", filteredProducts.length);
                                 value={priceMin}
                                 onChange={(e) => {
                                     const value = Number(e.target.value);
-                                    if (value <= priceMax) { setPriceMin(value);
-                                    setCurrentPage(1);
+                                    if (value <= priceMax) {
+                                        setPriceMin(value);
+                                        setCurrentPage(1);
                                     }
                                 }}
                                 className="price-slider"
@@ -228,8 +256,9 @@ console.log("Filtered products:", filteredProducts.length);
                                 value={priceMax}
                                 onChange={(e) => {
                                     const value = Number(e.target.value);
-                                    if (value >= priceMin) { setPriceMax(value);
-                                    setCurrentPage(1);
+                                    if (value >= priceMin) {
+                                        setPriceMax(value);
+                                        setCurrentPage(1);
                                     }
                                 }}
                                 className="price-slider"
@@ -253,25 +282,39 @@ console.log("Filtered products:", filteredProducts.length);
                             <ProductCard key={product.id} product={product} />
                         ))}
                     </div>
-                    <div className="flex justify-center items-center gap-2 mt-8">
-                        <button onClick={() => setCurrentPage(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 border rounded-lg disabled:opacity-40">
+                    {totalPages>1 &&(
+<div className="flex flex-wrap justify-center items-center gap-2 mt-10 ">
+                        <button onClick={() => setCurrentPage((prev) => Math.max( prev - 1,1))}
+                              disabled={currentPage === 1}
+                            className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
+                                <i className="fa-solid fa-chevron-left mr-2"></i>
                             Previous
                         </button>
-                        <span className="px-4 py-2">
-                            Page{currentPage} of {totalPages}
-                        </span>
-
-                        <button onClick={() => setCurrentPage(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 border rounded-lg disabled:opacity-40">
-                            Next
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+{getPageNumbers().map((page,index)=>
+page === "..." ? (<span key={`dots-${index}`}
+    className="px-2 py-2 text-gray-500">
+        ...
+    </span>
+):(
+<button key={page}
+    onClick={()=> setCurrentPage(page)} aria-current={ currentPage === page ? "page" : undefined }
+className={`min-w-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${currentPage === page ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:bg-blue-50"}`}>
+    {page}
+</button>
+)
+)}
+<button onClick={()=> setCurrentPage((prev) => Math.min (prev +1 , totalPages))
+}
+   disabled={currentPage === totalPages} className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
+Next
+<i className="fa-solid fa-chevron-right ml-2"></i>
+   </button>
+                    
+    </div>
+                    )}
+    </div>
+    </div>
+    </div>
     );
 }
 
