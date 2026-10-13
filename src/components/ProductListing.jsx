@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
+import { Helmet } from "react-helmet-async";
 
 
 function ProductListing() {
@@ -17,6 +18,7 @@ function ProductListing() {
     const [selectedBrands, setSelectedBrands] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 8;
+    const [isFiltering, setIsFiltering] = useState(false);
 
     useEffect(() => {
         fetch("https://dummyjson.com/products?limit=0")
@@ -49,6 +51,14 @@ function ProductListing() {
             });
     }, []);
 
+    useEffect(() => {
+        setIsFiltering(true);
+        const timer = setTimeout(() => {
+            setIsFiltering(false);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [selectedCategories, selectedBrands, priceMin, priceMax]);
+
     const filteredProducts = Products.filter((product) => {
         const matchesSearch = product.title.toLowerCase().includes(Search.toLowerCase());
         const matchesCategory = selectedCategories.length === 0 ||
@@ -71,25 +81,25 @@ function ProductListing() {
         indexOfLastProduct
     );
 
-    const getPageNumbers = ()=> {
+    const getPageNumbers = () => {
         const pages = [];
-        if(totalPages <= 5){
-            for (let i =1; i<= totalPages; i++){
+        if (totalPages <= 5) {
+            for (let i = 1; i <= totalPages; i++) {
                 pages.push(1);
             }
-        }else{
+        } else {
             pages.push(1);
-            if(currentPage>3){
+            if (currentPage > 3) {
                 pages.push("...");
             }
-            for(
-                let i = Math.max(2,currentPage -1);
-                i <= Math.min(totalPages-1,currentPage+1);
+            for (
+                let i = Math.max(2, currentPage - 1);
+                i <= Math.min(totalPages - 1, currentPage + 1);
                 i++
-            ){
+            ) {
                 pages.push(i);
             }
-            if(currentPage < totalPages -2){
+            if (currentPage < totalPages - 2) {
                 pages.push("...");
             }
             pages.push(totalPages);
@@ -99,6 +109,11 @@ function ProductListing() {
 
     return (
         <div className="max-w-7xl mx-auto px-5 py-10">
+            <Helmet>
+                <title> ShopMart | Online Product Store</title>
+                <meta name="description" content="Explore products across different categories and brands at ShopMart. Search ,filter and discover products easily." />
+                <meta name="robots" content="index,follow" />
+            </Helmet>
             <h1 className="text-3xl font-bold text-center mb-8">
                 Product Listing
             </h1>
@@ -273,48 +288,58 @@ function ProductListing() {
 
                 <div className="flex-1 min-w-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6  items-start">
-                        {filteredProducts.length === 0 && (
-                            <p className="text-center text-gray-500 mt-8">
-                                No Products found.
-                            </p>
-                        )}
-                        {currentProducts.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
+                        {isFiltering ? (
+                            <div className="col-span-full flex min-h-60 flex-col items-center justify-center">
+                                <i className="fa-solid fa-spinner fa-spin text-3xl text-blue-600"></i>
+                                <p className="mt-3 font-medium text-gray-600">
+                                    Loading Products....
+                                </p>
+                            </div>
+                        ) :
+                            filteredProducts.length === 0 ? (
+                                <p className="text-center text-gray-500 mt-8">
+                                    No Products found.
+                                </p>
+                            ) :
+                                (
+                                    currentProducts.map((product) => (
+                                        <ProductCard key={product.id} product={product} />
+                                    ))
+                                )}
                     </div>
-                    {totalPages>1 &&(
-<div className="flex flex-wrap justify-center items-center gap-2 mt-10 ">
-                        <button onClick={() => setCurrentPage((prev) => Math.max( prev - 1,1))}
-                              disabled={currentPage === 1}
-                            className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
+                    {totalPages > 1 && (
+                        <div className="flex flex-wrap justify-center items-center gap-2 mt-10 ">
+                            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
                                 <i className="fa-solid fa-chevron-left mr-2"></i>
-                            Previous
-                        </button>
-{getPageNumbers().map((page,index)=>
-page === "..." ? (<span key={`dots-${index}`}
-    className="px-2 py-2 text-gray-500">
-        ...
-    </span>
-):(
-<button key={page}
-    onClick={()=> setCurrentPage(page)} aria-current={ currentPage === page ? "page" : undefined }
-className={`min-w-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${currentPage === page ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:bg-blue-50"}`}>
-    {page}
-</button>
-)
-)}
-<button onClick={()=> setCurrentPage((prev) => Math.min (prev +1 , totalPages))
-}
-   disabled={currentPage === totalPages} className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
-Next
-<i className="fa-solid fa-chevron-right ml-2"></i>
-   </button>
-                    
-    </div>
+                                Previous
+                            </button>
+                            {getPageNumbers().map((page, index) =>
+                                page === "..." ? (<span key={`dots-${index}`}
+                                    className="px-2 py-2 text-gray-500">
+                                    ...
+                                </span>
+                                ) : (
+                                    <button key={page}
+                                        onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? "page" : undefined}
+                                        className={`min-w-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${currentPage === page ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:bg-blue-50"}`}>
+                                        {page}
+                                    </button>
+                                )
+                            )}
+                            <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                            }
+                                disabled={currentPage === totalPages} className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
+                                Next
+                                <i className="fa-solid fa-chevron-right ml-2"></i>
+                            </button>
+
+                        </div>
                     )}
-    </div>
-    </div>
-    </div>
+                </div>
+            </div>
+        </div>
     );
 }
 

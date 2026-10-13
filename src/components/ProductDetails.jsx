@@ -1,34 +1,67 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"
+import { Helmet } from "react-helmet-async";
+
 function ProductDetails() {
-    const { id } = useParams();
+    const { slug } = useParams();
     const [products, setProduct] = useState(null);
     const [selectedImage, setSelectedImage] = useState("");
     const [quantity, setQuantity] = useState(1);
     const [cartMessage, setCartMessage] = useState("");
 
-    useEffect(() => {
-        fetch(`https://dummyjson.com/products/${id}`)
-            .then((response) => response.json())
-            .then((data) => {
-                console.log(data);
-                setProduct(data);
-                setSelectedImage(data.images[0]);
+    useEffect(()=> {
+        fetch("https://dummyjson.com/products?limit=0")
+        .then((response)=>response.json())
+        .then((data)=>{
+            const product = data.products.find((itme)=>{
+                const productSlug =itme.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g,"-")
+                .replace(/(^-|-$)/g,"");
+                return productSlug === slug;
             });
-    }, [id]);
-
-    if (!products) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-xl font-semibold text-gray-600">
-                    Loading....
-                </p>
-            </div>
-        );
-    }
+            if(product) {
+                setProduct(product);
+                setSelectedImage(
+                    product.images[0] || product.thumbnail
+                );
+            }else{
+                setProduct(false);
+            }
+        })
+          .catch((error) => {
+    console.error("products fetch error:", error);
+    setProduct(false);
+});
+        },[slug]);
+        if(products === null) {
+            return (
+                <div className="min-h-screen flex items-center justify-center">
+                    <p className="text-xl font-semibold text-gray-600">
+                        Loading....
+                    </p>
+                </div>
+            );
+        }
+        if(products === false){
+            return(
+                <div className="p-6 text-center">
+                    Product not found
+                </div>
+            );
+        }
 
     return (
         <div className="max-w-6xl mx-auto p-6">
+
+            <Helmet>
+                <title>{products.title} | ShopMart</title>
+                <meta name="description" content={`${products.description} Buy ${products.title} at ShopMart.`} />
+                <meta property="og:title" content={`${products.title} | ShopMart`} />
+                <meta property="og:description" content={products.description} />
+                <meta property="og:image" content={products.thumbnail} />
+            </Helmet>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
 
                 <div className={`flex gap-3 ${products.images.length <= 1 ? "justify-center" : ""}`}>
@@ -41,15 +74,15 @@ function ProductDetails() {
                                     alt={`${products.title} ${index + 1}`}
                                     onClick={() => setSelectedImage(image)}
                                     className={`w-20 h-20 object-contain border rounded-md cursor-pointer ${selectedImage === image
-                                            ? "border-blue-500"
-                                            : "border-gray-300"
+                                        ? "border-blue-500"
+                                        : "border-gray-300"
                                         }`}
                                 />
                             ))}
                         </div>
                     )}
 
-                 <div className={`w-full ${products.images.length <= 1 ? "max-w-lg h-[450px]" : "max-w-md h-96"} border rounded-lg flex items-center justify-center`}>
+                    <div className={`w-full ${products.images.length <= 1 ? "max-w-lg h-[450px]" : "max-w-md h-96"} border rounded-lg flex items-center justify-center`}>
                         <img
                             src={selectedImage || products.thumbnail}
                             alt={products.title}
@@ -154,12 +187,12 @@ function ProductDetails() {
                             >
                                 ADD TO CART
                             </button>
-                
+
                             <button className="border border-gray-300 px-6 py-3 rounded-md hover:bg-gray-100">
                                 WISHLIST
                             </button>
 
-                             {cartMessage && (
+                            {cartMessage && (
                                 <p className="mt-3 text:sm text-green-600 font-medium text-sm">
                                     {cartMessage}
                                 </p>
