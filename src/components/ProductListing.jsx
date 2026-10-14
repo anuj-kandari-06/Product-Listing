@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
 import { Helmet } from "react-helmet-async";
+import { useSearchParams } from "react-router-dom";
 
 
 function ProductListing() {
@@ -16,8 +17,12 @@ function ProductListing() {
     const [showAllBrands, setShowAllBrands] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const productsPerPage = 8;
+    const[SearchParams,setSearchParams] = useSearchParams();
+    const [currentPage, setCurrentPage] = useState(()=>{
+        const page =Number(SearchParams.get("page")) || 1;
+        return Math.max(1,page);
+    });
+    const productsPerPage = 12;
     const [isFiltering, setIsFiltering] = useState(false);
 
     useEffect(() => {
@@ -85,7 +90,7 @@ function ProductListing() {
         const pages = [];
         if (totalPages <= 5) {
             for (let i = 1; i <= totalPages; i++) {
-                pages.push(1);
+                pages.push(i);
             }
         } else {
             pages.push(1);
@@ -106,6 +111,20 @@ function ProductListing() {
         }
         return pages;
     };
+    const gotToPage =(page) => {
+        const nextPage = Math.min(
+            Math.max(1,page),
+            Math.max(1,totalPages)
+        );
+        setCurrentPage(nextPage);
+        const params = new URLSearchParams(SearchParams);
+        if(nextPage ===1){
+            params.delete("page");
+        }else {
+            params.set("page" , String(nextPage));
+        }
+        setSearchParams(params);
+    }
 
     return (
         <div className="max-w-7xl mx-auto px-5 py-10">

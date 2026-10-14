@@ -6,7 +6,7 @@ function ProductCard({ product }) {
             <div className="relative group/image">
                 <img
                     src={product.thumbnail}
-                    alt={`$ {product.title} - ${product.category} product image`}
+                    alt={`${product.title} - ${product.category} product image`}
                     title={product.title}
                     loading="lazy"
                     className="w-full h-48 object-contain"
@@ -17,7 +17,7 @@ function ProductCard({ product }) {
                         {product.title}
                     </span>
                 </div>
-            </div>             
+            </div>
 
             <div className="relative h-10 mt-4">
                 <h3 className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-800 group-hover:hidden">
@@ -25,13 +25,13 @@ function ProductCard({ product }) {
                 </h3>
 
                 <a
-                    href={`/products/${product.title .toLowerCase() .replace(/[^a-z0-9]+/g, "-") .replace(/(^-|-$)/g,"")}`}
+                    href={`/products/${product.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
                     className="absolute inset-0 flex items-center justify-center border border-gray-200 rounded-md text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition"
                 >
                     VIEW PRODUCT
                 </a>
             </div>
-            
+
             <p className="mt-3">
                 <span className="font-medium">Price:</span>{" "}
                 <span className="font-bold text-blue-600">
