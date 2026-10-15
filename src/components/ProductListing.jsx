@@ -17,6 +17,7 @@ function ProductListing() {
     const [showAllBrands, setShowAllBrands] = useState(false);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [selectedBrands, setSelectedBrands] = useState([]);
+    const[isPageLoading,setIsPageLoading] = useState(false);
     const[SearchParams,setSearchParams] = useSearchParams();
     const [currentPage, setCurrentPage] = useState(()=>{
         const page =Number(SearchParams.get("page")) || 1;
@@ -116,6 +117,8 @@ function ProductListing() {
             Math.max(1,page),
             Math.max(1,totalPages)
         );
+        if(nextPage === currentPage) return;
+        setIsPageLoading(true);
         setCurrentPage(nextPage);
         const params = new URLSearchParams(SearchParams);
         if(nextPage ===1){
@@ -124,7 +127,19 @@ function ProductListing() {
             params.set("page" , String(nextPage));
         }
         setSearchParams(params);
-    }
+        setTimeout(()=>{
+            setIsPageLoading(false);
+        },500);
+    };
+    
+     useEffect(()=>{
+        const pageFromURL = Number(SearchParams.get("page")) || 1;
+        const validPage = Math.min(
+            Math.max(1,pageFromURL),
+            Math.max (1,totalPages)
+        );
+        setCurrentPage((previousPage) =>previousPage === validPage ? previousPage: validPage);
+     },[SearchParams,totalPages]);
 
     return (
         <div className="max-w-7xl mx-auto px-5 py-10">
@@ -307,8 +322,8 @@ function ProductListing() {
 
                 <div className="flex-1 min-w-0">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6  items-start">
-                        {isFiltering ? (
-                            <div className="col-span-full flex min-h-60 flex-col items-center justify-center">
+                        {isFiltering  || isPageLoading ? (
+                            <div className="col-span-full flex h-[400px] flex-col items-center justify-center">
                                 <i className="fa-solid fa-spinner fa-spin text-3xl text-blue-600"></i>
                                 <p className="mt-3 font-medium text-gray-600">
                                     Loading Products....
@@ -327,8 +342,8 @@ function ProductListing() {
                                 )}
                     </div>
                     {totalPages > 1 && (
-                        <div className="flex flex-wrap justify-center items-center gap-2 mt-10 ">
-                            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        <div className=" flex flex-wrap min-h-[40px] justify-center items-center gap-2 mt-10 ">
+                            <button onClick={() => gotToPage(currentPage-1)}
                                 disabled={currentPage === 1}
                                 className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
                                 <i className="fa-solid fa-chevron-left mr-2"></i>
@@ -341,14 +356,13 @@ function ProductListing() {
                                 </span>
                                 ) : (
                                     <button key={page}
-                                        onClick={() => setCurrentPage(page)} aria-current={currentPage === page ? "page" : undefined}
+                                        onClick={() => gotToPage(page)} aria-current={currentPage === page ? "page" : undefined}
                                         className={`min-w-10 rounded-lg border px-3 py-2 text-sm font-semibold transition ${currentPage === page ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-gray-300 bg-white text-gray-700 hover:border-blue-500 hover:bg-blue-50"}`}>
                                         {page}
                                     </button>
                                 )
                             )}
-                            <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                            }
+                            <button onClick={() => gotToPage(currentPage + 1)}
                                 disabled={currentPage === totalPages} className="px-4 py-2 border rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-100">
                                 Next
                                 <i className="fa-solid fa-chevron-right ml-2"></i>
