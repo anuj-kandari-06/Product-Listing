@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom"
 import { Helmet } from "react-helmet-async";
+import Toast from "./Toast";
+import { useCart } from "../Context/CartContext";
 
 function ProductDetails() {
     const { slug } = useParams();
@@ -8,51 +10,55 @@ function ProductDetails() {
     const [selectedImage, setSelectedImage] = useState("");
     const [quantity, setQuantity] = useState(1);
     const [cartMessage, setCartMessage] = useState("");
+    const { addToCart } = useCart();
 
-    useEffect(()=> {
+    useEffect(() => {
         fetch("https://dummyjson.com/products?limit=0")
-        .then((response)=>response.json())
-        .then((data)=>{
-            const product = data.products.find((itme)=>{
-                const productSlug =itme.title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g,"-")
-                .replace(/(^-|-$)/g,"");
-                return productSlug === slug;
-            });
-            if(product) {
-                setProduct(product);
-                setSelectedImage(
-                    product.images[0] || product.thumbnail
-                );
-            }else{
+            .then((response) => response.json())
+            .then((data) => {
+                const product = data.products.find((itme) => {
+                    const productSlug = itme.title
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/(^-|-$)/g, "");
+                    return productSlug === slug;
+                });
+                if (product) {
+                    setProduct(product);
+                    setSelectedImage(
+                        product.images[0] || product.thumbnail
+                    );
+                } else {
+                    setProduct(false);
+                }
+            })
+            .catch((error) => {
+                console.error("products fetch error:", error);
                 setProduct(false);
-            }
-        })
-          .catch((error) => {
-    console.error("products fetch error:", error);
-    setProduct(false);
-});
-        },[slug]);
-        if(products === null) {
-            return (
-                <div className="min-h-screen flex items-center justify-center">
-                    <p className="text-xl font-semibold text-gray-600">
-                        Loading....
-                    </p>
-                </div>
-            );
-        }
-        if(products === false){
-            return(
-                <div className="p-6 text-center">
-                    Product not found
-                </div>
-            );
-        }
+            });
+    }, [slug]);
+    if (products === null) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-xl font-semibold text-gray-600">
+                    Loading....
+                </p>
+            </div>
+        );
+    }
+    if (products === false) {
+        return (
+            <div className="p-6 text-center">
+                Product not found
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-6xl mx-auto p-6">
+            {cartMessage && (
+                <Toast message={cartMessage} onClose={() => setCartMessage("")} />
+            )}
 
             <Helmet>
                 <title>{products.title} | ShopMart</title>
@@ -179,9 +185,8 @@ function ProductDetails() {
                         <div className="flex flex-wrap items-center gap-4">
                             <button
                                 onClick={() => {
-                                    setCartMessage(
-                                        `${products.title} added to cart ${quantity}`
-                                    );
+                                    addToCart(products, quantity);
+                                    setCartMessage("added to cart");
                                 }}
                                 className="bg-blue-600 w-40 shrink-0 text-white px-6 py-3 rounded-md hover:bg-blue-700"
                             >
@@ -193,9 +198,9 @@ function ProductDetails() {
                             </button>
 
                             {cartMessage && (
-                                <p className="mt-3 text:sm text-green-600 font-medium text-sm">
-                                    {cartMessage}
-                                </p>
+                                <Toast
+                                    message="Added to Cart"
+                                    onClose={() => setCartMessage("")} />
                             )}
 
                         </div>

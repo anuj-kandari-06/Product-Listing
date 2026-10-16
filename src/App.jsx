@@ -3,8 +3,10 @@ import ProductListing from "./components/ProductListing";
 import ProductDetails from "./components/ProductDetails";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import { CartProvider } from "./Context/CartContext";
 function App() {
   return (
+    <CartProvider>
     <BrowserRouter>
     <Header/>
       <Routes>
@@ -13,6 +15,7 @@ function App() {
       </Routes>
       <Footer/>
     </BrowserRouter>
+    </CartProvider>
   );
 }
 

@@ -1,6 +1,13 @@
 import { useState } from "react";
+import { useCart } from "../Context/CartContext";
 function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
+    const{cartItems} = useCart();
+    const cartCount = cartItems.reduce(
+        (total,itme)=> total + itme.quantity,
+        0
+    );
+
     return (
         <header className=" bg-white border-b border-gray-200 shadow-sm">
             <div className=" relative max-w-7xl mx-auto px-5 py-4 flex  items-center justify-between">
@@ -33,9 +40,14 @@ function Header() {
                 </button>
 
 
-                <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                <button className=" relative flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                     <i className="fa-solid fa-cart-shopping"></i>
                     Cart
+                    {cartCount > 0 && (
+                        <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white ring-2 ring-white">
+                            {cartCount}
+                        </span>
+                    )}
                 </button>
             </div>
         </header>
