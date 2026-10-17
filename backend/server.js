@@ -1,18 +1,185 @@
-import connectDB from "./db";
-
+import connectDB from "./db.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import User from "./User.js";
+import session from "express-session";
+import MongoStore from "connect-mongo";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+    })
+);
 app.use(express.json());
-
+app.use(
+    session({
+        name: "shopmart.sid",
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: MongoStore.create({
+            mongoUrl: process.env.MONGO_URL,
+            collectionName: "sessions",
+        }),
+        cookie: {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 1000 * 60 * 60 * 24,
+        },
+    })
+);
 app.get("/", (req, res) => {
     res.send("ShopMart Backend is running!");
+});
+
+app.post("/api/register", async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                message: "All fields are required",
+            });
+        }
+        if (password.length < 8) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters",
+            });
+        }
+        const existingUser = await User.findOne({
+            email: email.trim().toLowerCase(),
+        });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "Email already registered. Please login.",
+            });
+        }
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUser = await User.create({
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password: hashedPassword,
+        });
+        return res.status(201).json({
+            message: "Registration Successful",
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+            },
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(409).json({
+                message: "Email already registered. Please login",
+            });
+        }
+        console.error("Registration error:", error.message);
+        return res.status(500).json({
+            message: "Registration failed.Please try again.",
+        });
+    }
+});
+
+app.post("/api/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({
+                message: "Email and password are required",
+            });
+        }
+        const user = await User.findOne({
+            email: email.trim().toLowerCase(),
+        });
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid email or password",
+            });
+        }
+        const isPasswordCorrect = await bcrypt.compare(
+            password,
+            user.password
+        );
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                message: "Invalid email or Password",
+            });
+        }
+        req.session.userId = user._id.toString();
+        return res.status(200).json({
+            message: "Login Successful",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+        });
+    } catch (error) {
+        console.error("Login error:", error.message);
+        return res.status(500).json({
+            message: "Login failed.Please try again.",
+        });
+    }
+});
+
+app.get("/api/me", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                message: "Not logged in",
+            });
+        }
+        const user = await User.findById(req.session.userId)
+            .select("-password");
+        if (!user) {
+            return res.status(401).json({
+                message: "User not found",
+            });
+        }
+        return res.status(200).json({
+            message: "User authenticated",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+        });
+    } catch (error) {
+        console.error("Session check error:", error.message);
+        return res.status(500).json({
+            message: "Unable to check session",
+        });
+    }
+});
+
+app.post("/api/logout", (req, res) => {
+    req.session.destroy((error) => {
+        if (error) {
+            console.error("Logout error:", error.message);
+            return res.status(500).json({
+                message: "Logout failed",
+            });
+        }
+        res.clearCookie("shopmart.sid", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            path: "/",
+        });
+        return res.status(200).json({
+            message: " Logout Successful",
+        });
+    });
 });
 const PORT = 5000;
 
