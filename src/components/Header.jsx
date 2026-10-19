@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../Context/CartContext";
 
 function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
-    const { cartItems } = useCart();
+    const [profileOpen, setProfileOpen] = useState(false);
+    const { cartItems, wishlistItems } = useCart();
+    useEffect(() => {
+        const handlePageShow = () => {
+            window.dispatchEvent(new Event("wishlist-refresh"));
+        };
+        window.addEventListener("pageshow", handlePageShow);
+        return () => {
+            window.removeEventListener("pageshow", handlePageShow);
+        };
+    }, []);
+
     const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
     return (
@@ -16,19 +27,59 @@ function Header() {
                     <Link to="/" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-blue-600">Products</Link>
                     <Link to="/" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-blue-600">About</Link>
                     <Link to="/" onClick={() => setMenuOpen(false)} className="text-gray-700 hover:text-blue-600">Contact</Link>
-                    <Link to="/login" onClick={() => setMenuOpen(false)} className="font-medium text-gray-700 hover:text-blue-600">Login</Link>
-                    <Link to="/register" onClick={() => setMenuOpen(false)} className="rounded-lg bg-blue-600 px-4 py-2 text-center text-white hover:bg-blue-700">Register</Link>
+                    {/* <Link to="/login" onClick={() => setMenuOpen(false)} className="font-medium text-gray-700 hover:text-blue-600">Login</Link>
+                    <Link to="/register" onClick={() => setMenuOpen(false)} className="rounded-lg bg-blue-600 px-4 py-2 text-center text-white hover:bg-blue-700">Register</Link> */}
                 </nav>
+                <div className="flex gap-5 items-center">
+                <div className="relative">
+                    <button onClick={() => setProfileOpen(!profileOpen)} className="flex flex-col items-center text-gray-700 hover:text-blue-600" aria-expanded={profileOpen}>
+                        <i className="fa-regular fa-user text-xl"></i>
+                        <span className="text-xs font-semibold">Profile</span>
+                    </button>
+                    {profileOpen && (
+                        <div className="absolute right-0 top-full z-50 mt-3 w-72 rounded-md border border-gray-200 bg-white p-5 shadow-lg">
+                            <h3 className="font-semibold text-gray-800">Welcome</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                To access account and manage orders.
+                            </p>
+                            <div className="mt-4">
+                                <Link to="/Login" onClick={() => setProfileOpen(false)} className="inline-block border border-gray-200 px-5 py-3 font-semibold text-blue-600 hover:border-blue-500">
+                                    LOGIN / SIGNUP
+                                </Link>
+                            </div>
+                            <hr className="my-4" />
+                            <div className="flex flex-col gap-3 text-sm text-gray-700">
+                                <Link to="/" onClick={() => setProfileOpen(false)}>Orders</Link>
+                                <Link to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>
+                                <Link to="/" onClick={() => setProfileOpen(false)}>Contact us</Link>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <Link to="/wishlist" className="flex flex-col items-center text-gray-700 hover:text-blue-600">
+                    <span className="relative">
+                        <i className="fa-regular fa-heart text-xl"></i>
+                        {wishlistItems.length > 0 && (
+                            <span className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
+                                {wishlistItems.length}
+                            </span>
+                        )}
+                    </span>
+                    <span className="text-xs font-semibold">Wishlist</span>
+                </Link>
+
                 <button onClick={() => setMenuOpen(!menuOpen)} className="text-2xl text-gray-700 md:hidden" aria-label="Toggle navigation menu" aria-expanded={menuOpen}>
                     <i className={`fa-solid ${menuOpen ? "fa-xmark" : "fa-bars"}`}></i>
                 </button>
-                <button className="relative flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+                <Link to="/cart" className="relative flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                     <i className="fa-solid fa-cart-shopping"></i>
                     Cart
                     {cartCount > 0 && (
                         <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white ring-2 ring-white">{cartCount}</span>
                     )}
-                </button>
+                </Link>
+                </div>
             </div>
         </header>
     );

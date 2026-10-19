@@ -12,6 +12,10 @@ function ProductCard({ product }) {
                     className="w-full h-48 object-contain"
                 />
 
+                {/* <button type="button" aria-label="Add to wishlist" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow hover:text-blue-600">
+                    <i className="fa-regular fa-heart text-lg"></i>
+                </button> */}
+
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition">
                     <span className="bg-black/70 text-white px-4 py-2 rounded-md text-sm font-semibold">
                         {product.title}

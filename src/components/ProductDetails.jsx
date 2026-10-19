@@ -11,6 +11,8 @@ function ProductDetails() {
     const [quantity, setQuantity] = useState(1);
     const [cartMessage, setCartMessage] = useState("");
     const { addToCart } = useCart();
+    const { wishlistItems, toggleWishlist } = useCart();
+    const isWishlisted = products ? wishlistItems.some((item) => item.id === products.id) : false;
 
     useEffect(() => {
         fetch("https://dummyjson.com/products?limit=0")
@@ -193,7 +195,8 @@ function ProductDetails() {
                                 ADD TO CART
                             </button>
 
-                            <button className="border border-gray-300 px-6 py-3 rounded-md hover:bg-gray-100">
+                            <button onClick={() => toggleWishlist(products)} className="border border-gray-300 px-6 py-3 rounded-md hover:bg-gray-100">
+                                <i className={isWishlisted ? "fa-solid fa-heart text-pink-600 mr-2" : "fa-regular fa-heart mr-2"}></i>
                                 WISHLIST
                             </button>
 

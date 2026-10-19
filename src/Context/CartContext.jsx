@@ -1,7 +1,44 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 const CartContext = createContext();
 export function CartProvider({ children }) {
-    const [cartItems, setCartItems] = useState([]);
+    const [cartItems, setCartItems] = useState(() => {
+        const saveCart = localStorage.getItem("shopmart-cart");
+        return saveCart ? JSON.parse(saveCart) : [];
+    });
+
+    const [wishlistItems, setWishlistItems] = useState(() => {
+        const saveWishlist = localStorage.getItem("shopmart-wishlist");
+        return saveWishlist ? JSON.parse(saveWishlist) : [];
+    });
+
+    useEffect(() => {
+        const refreshWishlist = () => {
+            const savedWishlist = localStorage.getItem("shopmart-wishlist");
+            if (savedWishlist) {
+                setWishlistItems(JSON.parse(savedWishlist));
+            } else {
+                setWishlistItems([]);
+            }
+        };
+        window.addEventListener("wishlist-refresh", refreshWishlist);
+        return () => {
+            window.removeEventListener("wishlist-refres", refreshWishlist);
+        };
+    }, []);
+
+    const toggleWishlist = (product) => {
+        setWishlistItems((previousItems) => {
+            const alreadyExists = previousItems.some(
+                (item) => item.id === product.id
+            );
+            if (alreadyExists) {
+                return previousItems.filter(
+                    (item) => item.id !== product.id
+                );
+            }
+            return [...previousItems, product];
+        });
+    };
     const addToCart = (product, quantity = 1) => {
         setCartItems((previousItems) => {
             const existingItem = previousItems.find(
@@ -18,8 +55,23 @@ export function CartProvider({ children }) {
             return [...previousItems, { ...product, quantity }];
         });
     };
+
+    const removeFromCart = (productId) => {
+        setCartItems((previousItems) =>
+            previousItems.filter((item) => item.id !== productId)
+        );
+    };
+
+    useEffect(() => {
+        localStorage.setItem("shopmart-cart", JSON.stringify(cartItems));
+    }, [cartItems]);
+
+    useEffect(() => {
+        localStorage.setItem("shopmart-wishlist", JSON.stringify(wishlistItems));
+    }, [wishlistItems]);
+
     return (
-        <CartContext.Provider value={{ cartItems, addToCart }}>
+        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart , wishlistItems, toggleWishlist }}>
             {children}
         </CartContext.Provider>
     );
