@@ -47,11 +47,11 @@ function Footer() {
                             </a>
                         
                             <a href="/" aria-label="Instagram" className="hover:text-white">
-                               <i class="fa-brands fa-instagram"></i>
+                               <i className="fa-brands fa-instagram"></i>
                             </a>
                             
                             <a href="/" aria-label="Twitter" className="hover:text-white">
-                                <i class="fa-brands fa-twitter"></i>
+                                <i className="fa-brands fa-twitter"></i>
                             </a>
                         </div>
 

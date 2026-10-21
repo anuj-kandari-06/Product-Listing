@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: "http://localhost:5174",
         credentials: true,
     })
 );
@@ -26,7 +26,7 @@ app.use(
         resave: false,
         saveUninitialized: false,
         store: MongoStore.create({
-            mongoUrl: process.env.MONGO_URL,
+            mongoUrl: process.env.MONGO_URI,
             collectionName: "sessions",
         }),
         cookie: {
@@ -43,8 +43,8 @@ app.get("/", (req, res) => {
 
 app.post("/api/register", async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-        if (!name || !email || !password) {
+        const { name, email, mobile, password } = req.body;
+        if (!name || !email || !mobile || !password) {
             return res.status(400).json({
                 message: "All fields are required",
             });
@@ -67,7 +67,18 @@ app.post("/api/register", async (req, res) => {
         const newUser = await User.create({
             name: name.trim(),
             email: email.trim().toLowerCase(),
+            mobile: mobile.trim(),
             password: hashedPassword,
+        });
+        req.session.userId =newUser._id.toString();
+        await new Promise((resolve,reject)=>{
+            req.session.save((error)=>{
+                if(error){
+                    reject(error);
+                }else{
+                    resolve();
+                }
+            });
         });
         return res.status(201).json({
             message: "Registration Successful",

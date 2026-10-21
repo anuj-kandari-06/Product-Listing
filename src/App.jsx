@@ -4,10 +4,11 @@ import ProductDetails from "./components/ProductDetails";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { CartProvider } from "./Context/CartContext";
-import Register from "./Pages/Register";
+import Signup from "./Pages/Signup";
 import Login from "./Pages/Login";
 import Wishlist from "./Pages/Wishlist";
 import Cart from "./Pages/Cart";
+
 
 function App() {
   return (
@@ -17,8 +18,8 @@ function App() {
       <Routes>
         <Route path="/" element={<ProductListing />} />
         <Route path="/products/:slug" element={<ProductDetails />} />
-        {/* <Route path="/register" element={<Register/>}/>
-        <Route path="/login" element={<Login/>}/> */}
+        <Route path="/signup" element={<Signup/>}/>
+        <Route path="/login" element={<Login/>}/>
         <Route path="/wishlist" element={<Wishlist/>}/>
         <Route path="/cart" element={<Cart/>}/>
       </Routes>
@@ -28,4 +29,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
