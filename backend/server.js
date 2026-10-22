@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "http://localhost:5174",
+        origin: "http://localhost:5173",
         credentials: true,
     })
 );
@@ -49,33 +49,59 @@ app.post("/api/register", async (req, res) => {
                 message: "All fields are required",
             });
         }
+        const normalizedEmail = email.trim().toLowerCase();
+        const normalizedMobile = mobile.trim();
+
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const mobilePattern = /^[6-9]\d{9}$/;
+
+        if (!emailPattern.test(normalizedEmail)) {
+            return res.status(400).json({
+                message: "Please enter a valid email address",
+            });
+        }
+        if (!mobilePattern.test(normalizedMobile)) {
+            return res.status(400).json({
+                message: "Enter a valid mobile number",
+            });
+        }
+
         if (password.length < 8) {
             return res.status(400).json({
                 message: "Password must be at least 8 characters",
             });
         }
         const existingUser = await User.findOne({
-            email: email.trim().toLowerCase(),
+            $or: [
+                { email: normalizedEmail },
+                { mobile: normalizedMobile },
+            ],
         });
 
         if (existingUser) {
-            return res.status(400).json({
+            if(existingUser.email === normalizedEmail){
+ return res.status(400).json({
                 message: "Email already registered. Please login.",
             });
+            }
+            return res.status(400).json({
+                message: "Mobile number already registered.Please login.",
+            });
         }
+        
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             name: name.trim(),
-            email: email.trim().toLowerCase(),
-            mobile: mobile.trim(),
+            email: normalizedEmail,
+            mobile: normalizedMobile,
             password: hashedPassword,
         });
-        req.session.userId =newUser._id.toString();
-        await new Promise((resolve,reject)=>{
-            req.session.save((error)=>{
-                if(error){
+        req.session.userId = newUser._id.toString();
+        await new Promise((resolve, reject) => {
+            req.session.save((error) => {
+                if (error) {
                     reject(error);
-                }else{
+                } else {
                     resolve();
                 }
             });
