@@ -95,30 +95,41 @@ function Header() {
                                 <div className="flex flex-col gap-3 text-sm text-gray-700">
                                     {user && (
                                         <>
-                                            <Link to="/dashboard" onClick={() => setProfileOpen(false)}>
-                                                My Profile
-                                            </Link>
-                                            <button onClick={handleLogout} className="text-left text-red-600 hover:text-red-700">
+                                            <Link to="/orders" onClick={() => setProfileOpen(false)} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Orders</Link>
+                                            <Link to="/wishlist" onClick={() => setProfileOpen(false)} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Wishlist</Link>
+                                            <Link to="/cart" onClick={() => setProfileOpen(false)} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Cart</Link>
+                                            <Link to="/profile" onClick={() => setProfileOpen(false)} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Edit Profile</Link>
+
+                                            <button type="button" onClick={handleLogout} className="pt-3 text-left text-red-600 hover:text-red-700">
                                                 Logout
                                             </button>
                                         </>
                                     )}
-                                    <Link to="/" onClick={() => setProfileOpen(false)}>Orders</Link>
-                                    <Link to="/wishlist" onClick={() => setProfileOpen(false)}>Wishlist</Link>
-                                    <Link to="/" onClick={() => setProfileOpen(false)}>Contact us</Link>
+                                    {!user && (
+                                        <>
+                                            <Link to="/wishlist" onClick={() => setProfileOpen(false)} className="py-2 hover:text-blue-600">
+                                                Wishlist
+                                            </Link>
+                                            <Link to="/" onClick={() => setProfileOpen(false)} className="py-2 hover:text-blue-600">
+                                                Contact Us
+                                            </Link>
+                                        </>
+                                    )}
                                 </div>
+
                             </div>
+
                         )}
                     </div>
 
                     <Link to="/wishlist" className="flex flex-col items-center text-gray-700 hover:text-blue-600">
                         <span className="relative">
                             <i className="fa-regular fa-heart text-xl"></i>
-                            {wishlistItems.length > 0 && (
+                            {/* {wishlistItems.length > 0 && (
                                 <span className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">
                                     {wishlistItems.length}
                                 </span>
-                            )}
+                            )} */}
                         </span>
                         <span className="text-xs font-semibold">Wishlist</span>
                     </Link>
