@@ -1,269 +1,100 @@
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
 
 function Login() {
-    const [mobile, setMobile] = useState("");
-    const [otp, setOtp] = useState("");
-    const [otpSent, setOtpSent] = useState(false);
-    const [loading, setLoading] = useState(false);
-
     const navigate = useNavigate();
+    const emailRef = useRef(null);
+    const [showPassword, setShowPassword] = useState(false);
 
-    // Send OTP
-    const handleContinue = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const email = formData.get("email")?.trim();
+        const password = formData.get("password");
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        if (!/^[6-9]\d{9}$/.test(mobile)) {
-            alert("Please enter a valid 10-digit mobile number.");
+        if (!emailPattern.test(email)) {
+            alert("Please enter a complete email address, e.g. name@gmail.com");
+            emailRef.current?.focus();
             return;
         }
 
-        setLoading(true);
-
         try {
-            const response = await fetch(
-                "http://localhost:5000/api/auth/send-otp",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({ mobile }),
-                }
-            );
+            const response = await fetch("http://localhost:5000/api/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify({ email, password }),
+            });
 
             const data = await response.json();
 
             if (!response.ok) {
-                alert(data.message || "OTP send nahi ho paya.");
-                return;
-            }
-
-            setOtpSent(true);
-            alert("OTP bhej diya gaya hai.");
-        } catch (error) {
-            console.error("Send OTP error:", error);
-            alert("Backend se connection nahi ho paa raha hai.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Verify OTP
-    const handleVerifyOtp = async (e) => {
-        e.preventDefault();
-
-        if (!/^\d{6}$/.test(otp)) {
-            alert("Please enter the 6-digit OTP.");
-            return;
-        }
-
-        setLoading(true);
-
-        try {
-            const response = await fetch(
-                "http://localhost:5000/api/auth/verify-otp",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({ mobile, otp }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                alert(data.message || "OTP verification failed.");
+                alert(data.message || "Login failed");
                 return;
             }
 
             window.dispatchEvent(new Event("auth-change"));
             navigate("/");
         } catch (error) {
-            console.error("Verify OTP error:", error);
+            console.error("Login error:", error);
             alert("Backend se connection nahi ho paa raha hai.");
-        } finally {
-            setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#fdeeef] flex items-center justify-center px-4 py-8">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-6 sm:py-10">
+            <div className="w-full max-w-md rounded-xl border border-gray-200 p-5 sm:p-8 bg-white shadow-sm">
+                <h1 className="text-center text-3xl font-bold text-blue-600">
+                    ShopMart
+                </h1>
+                <h2 className="mt-3 text-center text-sm text-gray-500">
+                    Welcome Back !
+                </h2>
+                <p className="mt-2 text-center text-sm text-gray-500">
+                    Login to your ShopMart account
+                </p>
 
-            {/* Main Login Card */}
-            <div className="w-full max-w-[420px] overflow-hidden rounded-sm bg-white shadow-xl">
-
-                {/* Promo Banner */}
-                <div className="flex items-center justify-between gap-4 bg-[#fff0e5] px-6 py-6 sm:px-8">
+                <form onSubmit={handleLogin} className="mt-6 sm:mt-8 space-y-4">
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
+                            Email or Mobile Number
+                        </label>
+                        <input ref={emailRef} type="text" name="email" placeholder="Enter email or mobile number" className="w-full min-w-0 rounded-lg border border-gray-300 outline-none px-3 sm:px-4 py-3 text-base focus:border-blue-500" required />
+                    </div>
 
                     <div>
-                        <p className="text-xs font-semibold tracking-widest text-gray-500">
-                            FLAT
-                        </p>
-
-                        <h2 className="mt-1 text-3xl font-extrabold leading-tight text-[#282c3f] sm:text-4xl">
-                            ₹300 OFF
-                        </h2>
-
-                        <p className="mt-2 text-sm text-gray-600">
-                            On your first order
-                        </p>
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Password
+                            </label>
+                            <Link to="/forgot-password" className="text-xs sm:text-sm text-blue-600 hover:underline">
+                                Forgot Password ?
+                            </Link>
+                        </div>
+                        <div className="relative">
+                            <input type={showPassword ? "text" : "password"} name="password" placeholder="Enter your password" className="w-full min-w-0 rounded-lg border border-gray-300 outline-none pl-3 sm:pl-4 pr-12 py-3 text-base focus:border-blue-500" required />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-blue-600" aria-label={showPassword ? "Hide password" : "Show password"}>
+                                <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col items-center gap-2 text-[#282c3f]">
-                        <i className="fa-solid fa-bag-shopping text-5xl"></i>
-                        {/* <i className="fa-solid fa-lock text-2xl"></i> */}
-                    </div>
+                    <button type="submit" className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 transition">
+                        LOGIN
+                    </button>
+                </form>
 
-                </div>
-
-                {/* Login / OTP Section */}
-                <div className="px-6 py-8 sm:px-8 sm:py-10">
-
-                    <h1 className="text-xl font-bold text-[#282c3f]">
-                        {otpSent ? (
-                            "Verify with OTP"
-                        ) : (
-                            <>
-                                Login <span className="font-normal">or Signup</span>
-                            </>
-                        )}
-                    </h1>
-
-                    {otpSent && (
-                        <p className="mt-3 text-sm text-gray-600">
-                            Enter the OTP sent to +91 {mobile}
-                        </p>
-                    )}
-
-                    {/* Mobile Number Form */}
-                    {!otpSent ? (
-                        <form
-                            onSubmit={handleContinue}
-                            className="mt-7 space-y-5"
-                        >
-                            <div className="flex w-full items-center border border-gray-300 focus-within:border-[#ff3f6c]">
-
-                                <span className="border-r border-gray-300 px-4 py-3.5 text-sm text-[#282c3f]">
-                                    +91
-                                </span>
-
-                                <input
-                                    type="tel"
-                                    name="mobile"
-                                    value={mobile}
-                                    onChange={(e) =>
-                                        setMobile(
-                                            e.target.value
-                                                .replace(/\D/g, "")
-                                                .slice(0, 10)
-                                        )
-                                    }
-                                    placeholder="Mobile Number"
-                                    maxLength={10}
-                                    inputMode="numeric"
-                                    autoComplete="tel-national"
-                                    className="min-w-0 flex-1 px-3 py-3.5 text-sm text-[#282c3f] outline-none"
-                                    required
-                                />
-
-                            </div>
-
-                            <p className="text-xs leading-5 text-gray-500">
-                                By continuing, I agree to the{" "}
-                                <span className="font-semibold text-[#ff3f6c]">
-                                    Terms of Use
-                                </span>{" "}
-                                &amp;{" "}
-                                <span className="font-semibold text-[#ff3f6c]">
-                                    Privacy Policy
-                                </span>
-                            </p>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-[#ff3f6c] py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-[#e93660] disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {loading ? "PLEASE WAIT..." : "CONTINUE"}
-                            </button>
-
-                        </form>
-                    ) : (
-
-                        /* OTP Verification Form */
-                        <form
-                            onSubmit={handleVerifyOtp}
-                            className="mt-7 space-y-5"
-                        >
-                            <input
-                                type="text"
-                                name="otp"
-                                value={otp}
-                                onChange={(e) =>
-                                    setOtp(
-                                        e.target.value
-                                            .replace(/\D/g, "")
-                                            .slice(0, 6)
-                                    )
-                                }
-                                placeholder="Enter 6-digit OTP"
-                                inputMode="numeric"
-                                autoComplete="one-time-code"
-                                maxLength={6}
-                                className="w-full border border-gray-300 px-4 py-3.5 text-sm outline-none focus:border-[#ff3f6c]"
-                                required
-                            />
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full bg-[#ff3f6c] py-3.5 text-sm font-bold tracking-wide text-white transition hover:bg-[#e93660] disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {loading ? "VERIFYING..." : "VERIFY OTP"}
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setOtpSent(false);
-                                    setOtp("");
-                                }}
-                                className="w-full text-sm font-semibold text-[#ff3f6c] hover:underline"
-                            >
-                                Change mobile number
-                            </button>
-
-                        </form>
-                    )}
-
-                    {/* Help Text */}
-                    <p className="mt-7 text-sm leading-6 text-gray-600">
-                        Having trouble logging in?{" "}
-                        <span className="font-semibold text-[#ff3f6c]">
-                            Get help
-                        </span>
-                    </p>
-
-                    <p className="mt-7 border-t border-gray-100 pt-5 text-xs leading-5 text-gray-500">
-                        Your mobile number will be used to securely verify your account.
-                    </p>
-
-                </div>
-
-                {/* Footer */}
-                <div className="bg-gray-50 px-6 py-5 text-center text-xs tracking-wide text-gray-400">
-                    SHOPMART — HAPPY SHOPPING
-                </div>
-
+                <p className="mt-6 text-center text-sm text-gray-600">
+                    Don't have an account?{" "}
+                    <Link to="/signup" className="font-semibold text-blue-600 hover:underline">
+                        Sign Up
+                    </Link>
+                </p>
             </div>
         </div>
     );
 }
-
 export default Login;

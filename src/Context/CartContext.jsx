@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
+
 const CartContext = createContext();
+
 export function CartProvider({ children }) {
     const [cartItems, setCartItems] = useState(() => {
         const saveCart = localStorage.getItem("shopmart-cart");
@@ -14,36 +16,31 @@ export function CartProvider({ children }) {
     useEffect(() => {
         const refreshWishlist = () => {
             const savedWishlist = localStorage.getItem("shopmart-wishlist");
-            if (savedWishlist) {
-                setWishlistItems(JSON.parse(savedWishlist));
-            } else {
-                setWishlistItems([]);
-            }
+            setWishlistItems(savedWishlist ? JSON.parse(savedWishlist) : []);
         };
+
         window.addEventListener("wishlist-refresh", refreshWishlist);
+
         return () => {
-            window.removeEventListener("wishlist-refres", refreshWishlist);
+            window.removeEventListener("wishlist-refresh", refreshWishlist);
         };
     }, []);
 
     const toggleWishlist = (product) => {
         setWishlistItems((previousItems) => {
-            const alreadyExists = previousItems.some(
-                (item) => item.id === product.id
-            );
+            const alreadyExists = previousItems.some((item) => item.id === product.id);
+
             if (alreadyExists) {
-                return previousItems.filter(
-                    (item) => item.id !== product.id
-                );
+                return previousItems.filter((item) => item.id !== product.id);
             }
+
             return [...previousItems, product];
         });
     };
+
     const addToCart = (product, quantity = 1) => {
         setCartItems((previousItems) => {
-            const existingItem = previousItems.find(
-                (item) => item.id === product.id
-            );
+            const existingItem = previousItems.find((item) => item.id === product.id);
 
             if (existingItem) {
                 return previousItems.map((item) =>
@@ -52,6 +49,7 @@ export function CartProvider({ children }) {
                         : item
                 );
             }
+
             return [...previousItems, { ...product, quantity }];
         });
     };
@@ -59,6 +57,16 @@ export function CartProvider({ children }) {
     const removeFromCart = (productId) => {
         setCartItems((previousItems) =>
             previousItems.filter((item) => item.id !== productId)
+        );
+    };
+
+    const decreaseQuantity = (productId) => {
+        setCartItems((previousItems) =>
+            previousItems.map((item) =>
+                item.id === productId
+                    ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+                    : item
+            )
         );
     };
 
@@ -71,11 +79,12 @@ export function CartProvider({ children }) {
     }, [wishlistItems]);
 
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart , wishlistItems, toggleWishlist }}>
+        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, decreaseQuantity, wishlistItems, toggleWishlist }}>
             {children}
         </CartContext.Provider>
     );
 }
+
 export function useCart() {
     return useContext(CartContext);
 }
