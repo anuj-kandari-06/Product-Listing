@@ -1,47 +1,61 @@
-import { Link } from "react-router-dom";
 import "./ProductCard.css";
 
 function ProductCard({ product }) {
-    const slug = product.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-
     return (
-        <div className="group min-w-0 overflow-hidden rounded-lg border border-gray-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-            <Link to={`/products/${slug}`} className="block">
-                <div className="relative flex items-center justify-center overflow-hidden p-3">
-                    <img
-                        src={product.thumbnail}
-                        alt={product.title}
-                        className="h-32 w-full object-contain transition-transform duration-300 group-hover:scale-105 sm:h-48"
-                    />
+        <div className="group h-full border border-gray-200 rounded-xl p-4 shadow-sm hover:-translate-y-1 hover:shadow-lg transition text-center">
+            <div className="relative group/image">
+                <img
+                    src={product.thumbnail}
+                    alt={`${product.title} - ${product.category} product image`}
+                    title={product.title}
+                    loading="lazy"
+                    className="w-full h-48 object-contain"
+                />
 
-                    <div className="absolute inset-0 hidden items-center justify-center bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:flex">
-                        <span className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900">
-                            VIEW PRODUCT
-                        </span>
-                    </div>
-                </div>
+                {/* <button type="button" aria-label="Add to wishlist" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-600 shadow hover:text-blue-600">
+                    <i className="fa-regular fa-heart text-lg"></i>
+                </button> */}
 
-                <div className="p-3 sm:p-4">
-                    <h2 className="line-clamp-2 break-words text-sm font-semibold text-gray-800 sm:text-base">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition">
+                    <span className="bg-black/70 text-white px-4 py-2 rounded-md text-sm font-semibold">
                         {product.title}
-                    </h2>
-
-                    <p className="mt-2 font-bold text-gray-900">
-                        ${Number(product.price).toFixed(2)}
-                    </p>
-
-                    {product.rating != null && (
-                        <p className="mt-1 text-sm text-gray-500">
-                            <i className="fa-solid fa-star text-yellow-400"></i>{" "}
-                            {product.rating}
-                        </p>
-                    )}
+                    </span>
                 </div>
-            </Link>
+            </div>
+
+            <div className="relative h-10 mt-4">
+                <h3 className="absolute inset-0 flex items-center justify-center text-lg font-semibold text-gray-800 group-hover:hidden">
+                    {product.title}
+                </h3>
+
+                <a
+                    href={`/products/${product.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`}
+                    className="absolute inset-0 flex items-center justify-center border border-gray-200 rounded-md text-blue-600 font-semibold opacity-0 group-hover:opacity-100 transition"
+                >
+                    VIEW PRODUCT
+                </a>
+            </div>
+
+            <p className="mt-3">
+                <span className="font-medium">Price:</span>{" "}
+                <span className="font-bold text-blue-600">
+                    ${product.price}
+                </span>
+            </p>
+
+            <div className="flex items-center justify-center gap-2">
+                <span className="font-medium">Rating:</span>
+                <i className="fa-solid fa-star text-yellow-400"></i>
+                <span>{product.rating}</span>
+            </div>
+
+            <p className="text-sm text-gray-500">
+                <span className="font-black">Category:</span>{" "}
+                {product.category}
+            </p>
+
         </div>
     );
 }
+
 export default ProductCard;
