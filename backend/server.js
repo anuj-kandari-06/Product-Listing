@@ -153,6 +153,15 @@ app.post("/api/login", async (req, res) => {
             });
         }
         req.session.userId = user._id.toString();
+        await new Promise((resolve, reject)=>{
+            res.session.save((error)=>{
+                if(error){
+                    reject(error);
+                }else{
+                    resolve();
+                }
+            });
+        });
         return res.status(200).json({
             message: "Login Successful",
             user: {
@@ -198,6 +207,89 @@ app.get("/api/me", async (req, res) => {
         });
     }
 });
+
+
+app.get("/api/cart-wishlist", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                message: "Please login first",
+            });
+        }
+
+        const user = await User.findById(req.session.userId)
+            .select("cartItems wishlistItems");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).json({
+            cartItems: user.cartItems,
+            wishlistItems: user.wishlistItems,
+        });
+    } catch (error) {
+        console.error("Load cart error:", error.message);
+
+        return res.status(500).json({
+            message: "Failed to load cart and wishlist",
+        });
+    }
+});
+
+app.put("/api/cart-wishlist", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                message: "Please login first",
+            });
+        }
+
+        const { cartItems, wishlistItems } = req.body;
+        const updateData = {};
+
+        if (Array.isArray(cartItems)) {
+            updateData.cartItems = cartItems;
+        }
+
+        if (Array.isArray(wishlistItems)) {
+            updateData.wishlistItems = wishlistItems;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({
+                message: "Cart or wishlist data is required",
+            });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.session.userId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).select("cartItems wishlistItems");
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found",
+            });
+        }
+
+        return res.status(200).json({
+            message: "Cart and wishlist saved",
+            cartItems: user.cartItems,
+            wishlistItems: user.wishlistItems,
+        });
+    } catch (error) {
+        console.error("Save cart error:", error.message);
+
+        return res.status(500).json({
+            message: "Failed to save cart and wishlist",
+        });
+    }
+});
+
 
 app.post("/api/logout", (req, res) => {
     req.session.destroy((error) => {

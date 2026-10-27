@@ -19,6 +19,14 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        cartItems:{
+            type:[mongoose.Schema.Types.Mixed],
+            default:[],
+        },
+        wishlistItems:{
+            type:[mongoose.Schema.Types.Mixed],
+            default:[],
+        },
     },
     {
         timestamps: true,
