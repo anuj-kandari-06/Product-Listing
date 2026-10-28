@@ -1,8 +1,9 @@
-
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../Context/CartContext";
 
 function Cart() {
     const { cartItems, addToCart, removeFromCart, decreaseQuantity, deleteFromCart } = useCart();
+    const navigate = useNavigate();
 
     const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
     const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -176,7 +177,7 @@ function Cart() {
 
                             <button
                                 type="button"
-                                onClick={() => alert("Checkout will be added next !")}
+                                onClick={() => navigate("/shipping")}
                                 className="w-full bg-purple-600 text-white font-semibold py-3 rounded-md mt-6 hover:bg-purple-700 transition"
                             >
                                 PLACE ORDER
