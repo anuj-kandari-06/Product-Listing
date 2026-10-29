@@ -79,16 +79,16 @@ app.post("/api/register", async (req, res) => {
         });
 
         if (existingUser) {
-            if(existingUser.email === normalizedEmail){
- return res.status(400).json({
-                message: "Email already registered. Please login.",
-            });
+            if (existingUser.email === normalizedEmail) {
+                return res.status(400).json({
+                    message: "Email already registered. Please login.",
+                });
             }
             return res.status(400).json({
                 message: "Mobile number already registered.Please login.",
             });
         }
-        
+
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = await User.create({
             name: name.trim(),
@@ -153,11 +153,11 @@ app.post("/api/login", async (req, res) => {
             });
         }
         req.session.userId = user._id.toString();
-        await new Promise((resolve, reject)=>{
-            res.session.save((error)=>{
-                if(error){
+        await new Promise((resolve, reject) => {
+            req.session.save((error) => {
+                if (error) {
                     reject(error);
-                }else{
+                } else {
                     resolve();
                 }
             });
@@ -310,6 +310,97 @@ app.post("/api/logout", (req, res) => {
         });
     });
 });
+
+app.get("/api/profile", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                message: "Please login first"
+            });
+        }
+        const user = await User.findById(req.session.userId)
+            .select("-password");
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+        res.json({ user });
+    } catch (error) {
+        console.error("Get profile error:", error);
+        res.status(500).json({
+            message: "Failed to fetch profile"
+        });
+    }
+});
+
+app.put("/api/profile", async (req, res) => {
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({
+                message: "Please login first"
+            });
+        }
+        const { name, email, mobile, address, profileImage } = req.body;
+        if (!name?.trim() || !email?.trim() || !mobile?.trim()) {
+            return res.status(400).json({
+                message: "Name, email and mobile are required"
+            });
+        }
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanMobile = mobile.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            return res.status(400).json({
+                message: "Enter a valid email address"
+            });
+        }
+        if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
+            return res.status(400).json({
+                message: "Entera valid 10-digit mobile number"
+            });
+        }
+        const existingUser = await User.findOne({
+            _id: { $ne: req.session.userId },
+            $or: [
+                { email: cleanEmail },
+                { mobile: cleanMobile }
+            ]
+        });
+        if (existingUser) {
+            return res.status(409).json({
+                message: "This email or mobile number is already registered"
+            });
+        }
+        const user = await User.findByIdAndUpdate(
+            req.session.userId, {
+            name: name.trim(),
+            email: cleanEmail,
+            mobile: cleanMobile,
+            address: address?.trim() || "",
+            profileImage: profileImage?.trim() || ""
+        },
+            {
+                returnDocument: "after",
+                runValidators: true
+            }
+        ).select("-password");
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+        res.json({
+            message: "Profile updated sucessfully",
+            user
+        });
+    } catch (error) {
+        console.error("Update profile error:", error);
+        res.status(500).json({
+            message: "Failed to update profile"
+        });
+    }
+});
+
 const PORT = 5000;
 
 async function startServer() {

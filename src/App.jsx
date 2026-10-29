@@ -9,6 +9,7 @@ import Login from "./Pages/Login";
 import Wishlist from "./Pages/Wishlist";
 import Cart from "./Pages/Cart";
 import Shipping from "./Pages/Shipping";
+import EditProfile from "./Pages/EditProfile";
 
 
 function AppLayout() {
@@ -27,6 +28,7 @@ function AppLayout() {
         <Route path="/wishlist" element={<Wishlist/>}/>
         <Route path="/cart" element={<Cart/>}/>
         <Route path="/shipping" element={<Shipping/>}/>
+        <Route path="/profile" element={<EditProfile/>}/>
       </Routes>
 
       {!isShippingPage && <Footer/>}

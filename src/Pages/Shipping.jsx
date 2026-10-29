@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 function Shipping() {
     const [paymentMode, setPaymentMode] = useState("cod");
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-8">
             <div className="mx-auto max-w-6xl">
                 <h1 className="mb-8 text-3xl font-bold text-[#aa3bff]">
-                    ShopMart
+                 <Link to="/"> ShopMart </Link>
                 </h1>
                 <h2 className="mb-6 text-2xl font-semibold">
                     Shipping Details
@@ -49,7 +50,7 @@ function Shipping() {
                             Payment Method
                         </h2>
                         <label className="mb-4 flex cursor-pointer items-start gap-3 rounded-lg  border border-gray-200 p-4">
-                            <input type="radio" name="paymentMode" value="cod" checked={paymentMode === "cod"} onChange={(e)=> setPaymentMode(e.target.value)}/>
+                            <input type="radio" name="paymentMode" value="cod" checked={paymentMode === "cod"} onChange={(e)=> setPaymentMode(e.target.value)}  className="mt-3"/>
                             <span>
                                 <span className="block font-medium">
                                     Cash on Delivery
@@ -60,7 +61,7 @@ function Shipping() {
                             </span>
                         </label>
                         <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-4">
-                            <input type="radio" name="paymentMode" value="online" checked={paymentMode === "online"} onChange={(e)=> setPaymentMode(e.target.value)}/>
+                            <input type="radio" name="paymentMode" value="online" checked={paymentMode === "online"} onChange={(e)=> setPaymentMode(e.target.value)} className="mt-3"/>
                             <span>
                                 <span className="block font-medium">
                                     Online Payment

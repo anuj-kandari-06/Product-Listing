@@ -15,17 +15,25 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        address: {
+            type: String,
+            default: "",
+        },
+        profileImage: {
+            type: String,
+            default: "",
+        },
         password: {
             type: String,
             required: true,
         },
-        cartItems:{
-            type:[mongoose.Schema.Types.Mixed],
-            default:[],
+        cartItems: {
+            type: [mongoose.Schema.Types.Mixed],
+            default: [],
         },
-        wishlistItems:{
-            type:[mongoose.Schema.Types.Mixed],
-            default:[],
+        wishlistItems: {
+            type: [mongoose.Schema.Types.Mixed],
+            default: [],
         },
     },
     {
