@@ -176,11 +176,10 @@ function Cart() {
                             </div>
 
                             <button
-                                type="button"
-                                onClick={() => navigate("/shipping")}
+                                type="submit" disabled={placingOrder}
                                 className="w-full bg-purple-600 text-white font-semibold py-3 rounded-md mt-6 hover:bg-purple-700 transition"
                             >
-                                PLACE ORDER
+                              {placingOrder ?"PLACE ORDER...." : "PLACE ORDER"}  
                             </button>
 
                             <p className="text-xs text-gray-500 mt-4 text-center">

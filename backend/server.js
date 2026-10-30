@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import User from "./User.js";
 import session from "express-session";
 import MongoStore from "connect-mongo";
+import Order from "./Order.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(
         credentials: true,
     })
 );
+
 app.use(express.json());
 app.use(
     session({
@@ -397,6 +399,43 @@ app.put("/api/profile", async (req, res) => {
         console.error("Update profile error:", error);
         res.status(500).json({
             message: "Failed to update profile"
+        });
+    }
+});
+
+app.post("/api/orders", async(req, res)=>{
+    try{
+        if(!req.session.userId){
+            return res.status(401).json({
+                message: "Please login first",
+            });
+        }
+        const{items, shippingAddress, paymentMode,} = req.body;
+        if(!Array.isArray(items) || items.length === 0 || !shippingAddress || !paymentMode )
+         { return res.status(400).json({
+            message :"Incomplete order details",
+         });
+        }
+        const totalAmount = items.reduce((total, item)=>{
+            return total + Number(item.price)*Number(item.quantity);
+        }, 0);
+        if(!Number.isFinite(totalAmount) || items.some(item => !Number(item.price)<0 || !Number.isInte(Number(item.quantity)) || Number(item.quantity)<1 )
+        ) {
+    return res.status(400).json({
+        message: "Invalid product details",
+    });
+    }
+    const order = await Order.create({
+        user: req.session.userId,
+        items, shippingAddress, paymentMode, totalAmount,
+    });
+    res.status(201).json({
+        message : "Order placed successfully", order,
+    });
+    }catch(error){
+        console.error("Place order error:", error);
+        res.status(500).json({
+            message:"Ünable to place order",
         });
     }
 });

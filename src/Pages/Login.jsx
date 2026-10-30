@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const emailRef = useRef(null);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -37,7 +39,7 @@ function Login() {
             }
 
             window.dispatchEvent(new Event("auth-change"));
-            navigate("/");
+            navigate(location.state?.from || "/", { replace:true});
         } catch (error) {
             console.error("Login error:", error);
             alert("Backend se connection nahi ho paa raha hai.");

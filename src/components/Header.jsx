@@ -93,8 +93,8 @@ function Header() {
 
                         {profileOpen && (
                             <div className="absolute right-0 top-full z-[60] mt-3 w-[min(18rem,calc(100vw-1.5rem))] rounded-md border border-gray-200 bg-white p-4 shadow-lg sm:p-5">
-                                <h3 className="break-words font-semibold text-gray-800">{user ? `Welcome, ${user.name}` : "Welcome"}</h3>
-                                <p className="mt-1 text-sm text-gray-600">To access account and manage orders.</p>
+                                <h3 className="break-words font-semibold text-gray-800">{user ? user.name : "Welcome"}</h3>
+                                <p className="mt-1  break-all text-sm text-gray-600">{user ? (user.email || user.mobile || ""): "To access account and manage orders."}</p>
 
                                 {!user && (
                                     <div className="mt-4">
@@ -109,11 +109,11 @@ function Header() {
                                 <div className="flex flex-col gap-3 text-sm text-gray-700">
                                     {user && (
                                         <>
-                                            <Link to="/orders" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Orders</Link>
-                                            <Link to="/wishlist" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Wishlist</Link>
-                                            <Link to="/cart" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Cart</Link>
-                                            <Link to="/profile" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600">Edit Profile</Link>
-                                            <button type="button" onClick={handleLogout} className="pt-3 text-left text-red-600 hover:text-red-700">Logout</button>
+                                            <Link to="/orders" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"><i class="fa-brands fa-shopify mr-2"></i> Orders</Link>
+                                            <Link to="/wishlist" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"> <i class="fa-solid fa-heart mr-2"></i>Wishlist</Link>
+                                            <Link to="/cart" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"> <i class="fa-solid fa-cart-shopping mr-2"></i>Cart</Link>
+                                            <Link to="/profile" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"> <i class="fa-solid fa-user-pen mr-2"></i>Edit Profile</Link>
+                                            <button type="button" onClick={handleLogout} className="pt-3 text-left text-red-600 hover:text-red-700"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</button>
                                         </>
                                     )}
 

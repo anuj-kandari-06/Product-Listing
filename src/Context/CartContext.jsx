@@ -16,6 +16,10 @@ export function CartProvider({ children }) {
     const [wishlistItems, setWishlistItems] = useState([]);
     const [userId, setUserId] = useState(null);
     const [dataLoaded, setDataLoaded] = useState(false);
+    const clearCart = ()=>{
+        setCartItems([]); 
+        localStorage.removeItem("shopmart-cart");
+    };
 
     const loadRequestId = useRef(0);
 
@@ -251,6 +255,7 @@ export function CartProvider({ children }) {
                 decreaseQuantity,
                 wishlistItems,
                 toggleWishlist,
+                clearCart,
             }}
         >
             {children}
