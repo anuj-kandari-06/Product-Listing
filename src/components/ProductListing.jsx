@@ -55,6 +55,24 @@ function ProductListing() {
         }, 500);
         return () => clearTimeout(timer);
     }, [selectedCategories, selectedBrands, priceMin, priceMax]);
+    
+    const visibleCategories = [...new Set([...Products.filter((product) => selectedBrands.length === 0 || selectedBrands.includes(product.brand)
+    )
+        .map((product) => product.category),
+    ...selectedCategories,]),].sort();
+
+    const visibleBrands = [
+        ...new Set([
+            ...Products
+                .filter((product) =>
+                    selectedCategories.length === 0 ||
+                    selectedCategories.includes(product.category)
+                )
+                .map((product) => product.brand)
+                .filter(Boolean),
+            ...selectedBrands,
+        ]),
+    ].sort();
 
     const filteredProducts = Products.filter((product) => {
         const matchesSearch = product.title.toLowerCase().includes(Search.toLowerCase());
@@ -177,7 +195,7 @@ function ProductListing() {
                             )}
                         </div>
                         <div className={`space-y-3 ${showAllCategories ? "max-h-64 overflow-y-auto pr-2" : ""}`}>
-                            {categories.slice(0, showAllCategories ? categories.length : 8).map((category) => (
+                            {visibleCategories.slice(0, showAllCategories ? visibleCategories.length : 8).map((category) => (
                                 <label key={category} className="flex items-start gap-3 text-sm text-gray-700">
                                     <input
                                         type="checkbox"
@@ -196,9 +214,9 @@ function ProductListing() {
                                 </label>
                             ))}
                         </div>
-                        {!showAllCategories && categories.length > 8 && (
+                        {!showAllCategories && visibleCategories.length > 8 && (
                             <button type="button" onClick={() => setShowAllCategories(true)} className="mt-4 text-sm font-medium text-blue-500 hover:text-blue-700">
-                                +{categories.length - 8} more
+                                +{visibleCategories.length - 8} more
                             </button>
                         )}
                     </div>
@@ -212,7 +230,7 @@ function ProductListing() {
                             )}
                         </div>
                         <div className={`space-y-3 ${showAllBrands ? "max-h-64 overflow-y-auto pr-2" : ""}`}>
-                            {brands.slice(0, showAllBrands ? brands.length : 8).map((brand) => (
+                            {visibleBrands.slice(0, showAllBrands ? visibleBrands.length : 8).map((brand) => (
                                 <label key={brand} className="flex items-start gap-3 text-sm text-gray-700">
                                     <input
                                         type="checkbox"
@@ -231,9 +249,9 @@ function ProductListing() {
                                 </label>
                             ))}
                         </div>
-                        {!showAllBrands && brands.length > 8 && (
+                        {!showAllBrands && visibleBrands.length > 8 && (
                             <button type="button" onClick={() => setShowAllBrands(true)} className="mt-4 text-sm font-medium text-blue-500 hover:text-blue-700">
-                                +{brands.length - 8} more
+                                +{visibleBrands.length - 8} more
                             </button>
                         )}
                     </div>

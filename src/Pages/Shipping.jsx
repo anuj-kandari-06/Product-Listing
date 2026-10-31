@@ -158,8 +158,8 @@ function Shipping() {
                                 </span>
                             </span>
                         </label>
-                        <button type="submit" className="mt-6 w-full rounded-lg bg-[#aa3bff] px-4 py-3 font-semibold text-white hover:opacity-90">
-                            CONTINUE
+                        <button type="submit" disabled={placingOrder} className="mt-6 w-full rounded-lg bg-[#aa3bff] px-4 py-3 font-semibold text-white hover:opacity-90">
+                            {placingOrder ? "Placing Order...": "PLACE ORDER"}
                         </button>
                         <p className="mt-4 text-center text-sm text-gray-500">
                             Secure shopping with ShopMart

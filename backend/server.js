@@ -419,7 +419,7 @@ app.post("/api/orders", async(req, res)=>{
         const totalAmount = items.reduce((total, item)=>{
             return total + Number(item.price)*Number(item.quantity);
         }, 0);
-        if(!Number.isFinite(totalAmount) || items.some(item => !Number(item.price)<0 || !Number.isInte(Number(item.quantity)) || Number(item.quantity)<1 )
+        if(!Number.isFinite(totalAmount) || items.some(item => !Number.isFinite(Number(item.price)) || Number(item.price) < 0 || !Number.isInteger(Number(item.quantity)) || Number(item.quantity)<1 )
         ) {
     return res.status(400).json({
         message: "Invalid product details",
@@ -435,9 +435,28 @@ app.post("/api/orders", async(req, res)=>{
     }catch(error){
         console.error("Place order error:", error);
         res.status(500).json({
-            message:"Ünable to place order",
+            message:"Unable to place order",
         });
     }
+});
+
+app.get("/api/my-orders", async(req, res)=>{
+    try{
+        if(!req.session.userId) {
+            return res.status(401).json({
+                message: "Please login first",
+            });
+        }
+        const orders = await Order.find({
+            user: req.session.userId,
+        }).sort({createdAt:-1});
+        res.status(200).json({orders});
+    }catch(error) {
+            console.error("Fetch orders error:", error);
+            res.status(500).json({
+                message: "Unable to fetch orders",
+            });
+        }
 });
 
 const PORT = 5000;

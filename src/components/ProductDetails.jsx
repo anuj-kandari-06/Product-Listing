@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import Toast from "./Toast";
 import { useCart } from "../Context/CartContext";
+import { getRelatedProducts } from "../data/relatedProducts";
 
 function ProductDetails() {
     const { slug } = useParams();
     const [products, setProduct] = useState(null);
+    const[relatedProducts, setRelatedProducts] = useState([]);
     const [selectedImage, setSelectedImage] = useState("");
     const [quantity, setQuantity] = useState(1);
     const [cartMessage, setCartMessage] = useState("");
@@ -27,8 +29,11 @@ function ProductDetails() {
                 if (product) {
                     setProduct(product);
                     setSelectedImage(product.images[0] || product.thumbnail);
+                    const related = getRelatedProducts(product, data.products);
+                    setRelatedProducts(related);
                 } else {
                     setProduct(false);
+                    setRelatedProducts([]);
                 }
             })
             .catch((error) => {
