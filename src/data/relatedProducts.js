@@ -40,11 +40,22 @@ export const getRelatedProducts = (currentProduct, allProducts) => {
         currentProduct.category,
     ];
 
-    return allProducts
-        .filter(
-            (item) =>
-                item.id !== currentProduct.id &&
-                categories.includes(item.category)
-        )
-        .slice(0, 8);
+    const sameCategoryProducts = allProducts.filter(
+        (item) =>
+            item.id !== currentProduct.id &&
+            categories.includes(item.category)
+    );
+
+    const otherProducts = allProducts.filter(
+        (item) =>
+            item.id !== currentProduct.id &&
+            !categories.includes(item.category)
+    );
+
+    sameCategoryProducts.sort((a, b) => {
+        const aBrand = a.brand === currentProduct.brand ? 1 : 0;
+        const bBrand = b.brand === currentProduct.brand ? 1 : 0;
+        return bBrand - aBrand;
+    });
+    return [...sameCategoryProducts, ...otherProducts].slice(0, 8);
 };

@@ -14,6 +14,8 @@ function EditProfile() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [previewImage, setPreviewImage] = useState("");
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -53,6 +55,24 @@ function EditProfile() {
             [name]: value
         }));
     };
+
+const handleImageChange = (event) => {
+        const file = event.target.files[0];
+        if(!file) return;
+        if(!file.type.startsWith("image/")){
+            setMessage("Please select a valid image.");
+            return;
+        }
+        if(file.size > 5 * 1024 * 1024){
+            setMessage("Image size should be less than 5 MB.");
+            return;
+        }
+        setSelectedImage(file);
+        const imageUrl =URL.createObjectURL(file);
+        setPreviewImage(imageUrl);
+        setMessage("");
+};
+
     const handleSubmit = async (event) => {
         event.preventDefault();
         setSaving(true);
@@ -134,12 +154,19 @@ function EditProfile() {
                         </label>
                         <textarea name="address" value={formData.address} onChange={handleChange} rows={3} placeholder="Enter your address" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-pink-500" />
                     </div>
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">
-                            Profile Image URL
+                    {/* <div>
+                        <label className="mb-2 block text-sm font-medium">
+                            Profile Image
                         </label>
-                        <input type="url" name="profileImage" value={formData.profileImage} onChange={handleChange} placeholder="https://example.com/photo.jpg" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-pink-500" />
-                    </div>
+                        <div className="flex items-center gap-4">
+                            <img src={formData.profileImage || "/default-profile.png"} alt="Profile preview" className="h-12 w-12 rounded-full border object-cover"/>
+                            <input type="file" accept="image/*" onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-pink-500" />
+                            <label htmlfor="profileImage" className="cursor-pointer rounded-2xl bg-pink-500 px-4 py-0.5 text-sm font-semibold text-white hover:bg-pink-500">
+                                Choose Image
+                            </label>
+                            <input type="file" id="profileImage" accept="image/png,image/jpeg,image/webp" onChange={handleImageChange} className="hidden"/>
+                        </div>
+                    </div> */}
                     {message && (
                         <p className="text-sm text-pink-600" role="status">
                             {message}

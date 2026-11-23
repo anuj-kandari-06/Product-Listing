@@ -8,12 +8,12 @@ import { getRelatedProducts } from "../data/relatedProducts";
 function ProductDetails() {
     const { slug } = useParams();
     const [products, setProduct] = useState(null);
-    const[relatedProducts, setRelatedProducts] = useState([]);
+    const [relatedProducts, setRelatedProducts] = useState([]);
     const [selectedImage, setSelectedImage] = useState("");
     const [quantity, setQuantity] = useState(1);
     const [cartMessage, setCartMessage] = useState("");
     const { addToCart, wishlistItems, toggleWishlist } = useCart();
-    const isWishlisted = products ? wishlistItems.some((item) => item.id === products.id) : false;
+    const isWishlisted = wishlistItems.some((item) => item.id === products?.id);
 
     useEffect(() => {
         fetch("https://dummyjson.com/products?limit=0")
@@ -177,6 +177,41 @@ function ProductDetails() {
                     </div>
                 </div>
             </div>
+            {relatedProducts.length > 0 && (
+                <section className="mt-16 border-t border-gray-200 pt-8">
+                    <h2 className="mb-6 text-xl font-bold text-gray-800">You May Also Like</h2>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                        {relatedProducts.map((item) => {
+                            const productSlug = item.title
+                                .toLowerCase()
+                                .replace(/[^a-z0-9]+/g, '-')
+                                .replace(/(^-|-$)/g, '');
+                            return (
+                                <Link key={item.id} to={`/products/${productSlug}`} className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition-shadow hover:shadow-lg">
+                                    <div className="flex h-40 items-center justify-center bg-gray-50 p-3 sm:h-52">
+                                        <img src={item.thumbnail} alt={item.title} className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" />
+                                    </div>
+                                    <div className="p-3">
+                                        <h3 className="line-clamp-2 min-h-10 font-semibold text-gray-800 text-center">
+                                            {item.title}
+                                        </h3>
+                                        <p className="mt-2 font-bold text-blue-600 text-center">
+                                            ${item.price}
+                                        </p>
+                                        <p className="mt-1 text-sm text-gray-400 line-through text-center">
+                                            ${(item.price / (1 - item.discountPercentage / 100)).toFixed(2)}
+                                        </p>
+                                        <div className="mt-2 text-sm text-gray-800 text-center">
+                                            <span><i className="fa-solid fa-star text-yellow-500 mr-2"></i></span>
+                                            {item.rating}
+                                        </div>
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

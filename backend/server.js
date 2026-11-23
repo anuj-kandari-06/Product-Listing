@@ -8,6 +8,7 @@ import User from "./User.js";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import Order from "./Order.js";
+import adminMiddleware from "./middleware/adminMiddleware.js";
 
 dotenv.config();
 
@@ -114,6 +115,7 @@ app.post("/api/register", async (req, res) => {
                 id: newUser._id,
                 name: newUser.name,
                 email: newUser.email,
+                role: newUser.role || "user",
             },
         });
     } catch (error) {
@@ -170,6 +172,7 @@ app.post("/api/login", async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                role:user.role || "user",
             },
         });
     } catch (error) {
@@ -200,6 +203,7 @@ app.get("/api/me", async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
+                role: user.role || "user",
             },
         });
     } catch (error) {
@@ -208,6 +212,13 @@ app.get("/api/me", async (req, res) => {
             message: "Unable to check session",
         });
     }
+});
+
+app.get("/api/admin/dashboard", adminMiddleware, (req,res) =>{
+    return res.status(200).json({
+        message: "Welcome To The Admin Dashboard",
+        success: true,
+    });
 });
 
 
