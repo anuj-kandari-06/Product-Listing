@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../Context/CartContext";
 
@@ -6,6 +6,7 @@ function Header() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const [user, setUser] = useState(null);
+    const profileRef = useRef(null);
     const navigate = useNavigate();
     const { cartItems, wishlistItems } = useCart();
 
@@ -43,6 +44,20 @@ function Header() {
         };
     }, []);
 
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setProfileOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleOutsideClick);
+        document.addEventListener("touchstart", handleOutsideClick);
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+            document.removeEventListener("touchstart", handleOutsideClick);
+        };
+    }, []);
+
     const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
     const handleLogout = async () => {
@@ -76,26 +91,22 @@ function Header() {
                 <Link to="/" onClick={closeMenu} className="shrink-0 text-xl font-bold text-blue-600 sm:text-2xl">
                     ShopMart
                 </Link>
-
                 <nav className={`${menuOpen ? "flex" : "hidden"} absolute left-0 top-full z-50 w-full flex-col gap-4 border-b border-gray-200 bg-white p-5 shadow-md md:static md:flex md:w-auto md:flex-1 md:flex-row md:items-center md:justify-center md:gap-5 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}>
                     <Link to="/" onClick={closeMenu} className="text-gray-700 hover:text-blue-600">Home</Link>
                     <Link to="/" onClick={closeMenu} className="text-gray-700 hover:text-blue-600">Products</Link>
                     <Link to="/" onClick={closeMenu} className="text-gray-700 hover:text-blue-600">About</Link>
                     <Link to="/" onClick={closeMenu} className="text-gray-700 hover:text-blue-600">Contact</Link>
                 </nav>
-
                 <div className="flex shrink-0 items-center gap-3 sm:gap-5">
-                    <div className="relative">
+                    <div className="relative" ref={profileRef}>
                         <button type="button" onClick={() => setProfileOpen(!profileOpen)} className="flex flex-col items-center text-gray-700 hover:text-blue-600" aria-expanded={profileOpen} aria-label="Open profile menu">
                             <i className="fa-regular fa-user text-lg sm:text-xl"></i>
                             <span className="text-[10px] font-semibold sm:text-xs">Profile</span>
                         </button>
-
                         {profileOpen && (
                             <div className="absolute right-0 top-full z-[60] mt-3 w-[min(18rem,calc(100vw-1.5rem))] rounded-md border border-gray-200 bg-white p-4 shadow-lg sm:p-5">
                                 <h3 className="break-words font-semibold text-gray-800">{user ? user.name : "Welcome"}</h3>
-                                <p className="mt-1  break-all text-sm text-gray-600">{user ? (user.email || user.mobile || "") : "To access account and manage orders."}</p>
-
+                                <p className="mt-1 break-all text-sm text-gray-600">{user ? (user.email || user.mobile || "") : "To access account and manage orders."}</p>
                                 {!user && (
                                     <div className="mt-4">
                                         <Link to="/login" onClick={closeMenu} className="inline-block border border-gray-200 px-4 py-3 text-sm font-semibold text-blue-600 hover:border-blue-500">
@@ -103,20 +114,17 @@ function Header() {
                                         </Link>
                                     </div>
                                 )}
-
                                 <hr className="my-4" />
-
                                 <div className="flex flex-col gap-3 text-sm text-gray-700">
                                     {user && (
                                         <>
                                             <Link to="/my-orders" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"><i className="fa-brands fa-shopify mr-2"></i><span>My Orders</span></Link>
-                                            <Link to="/wishlist" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"> <i className="fa-solid fa-heart mr-2"></i>Wishlist</Link>
-                                            <Link to="/cart" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"> <i className="fa-solid fa-cart-shopping mr-2"></i>Cart</Link>
-                                            <Link to="/profile" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"> <i className="fa-solid fa-user-pen mr-2"></i>Edit Profile</Link>
+                                            <Link to="/wishlist" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"><i className="fa-solid fa-heart mr-2"></i>Wishlist</Link>
+                                            <Link to="/cart" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"><i className="fa-solid fa-cart-shopping mr-2"></i>Cart</Link>
+                                            <Link to="/profile" onClick={closeMenu} className="border-b border-gray-100 py-2 font-medium hover:text-blue-600"><i className="fa-solid fa-user-pen mr-2"></i>Edit Profile</Link>
                                             <button type="button" onClick={handleLogout} className="pt-3 text-left text-red-600 hover:text-red-700"><i className="fa-solid fa-arrow-right-from-bracket mr-2"></i>Logout</button>
                                         </>
                                     )}
-
                                     {!user && (
                                         <>
                                             <Link to="/wishlist" onClick={closeMenu} className="py-2 hover:text-blue-600">Wishlist</Link>
@@ -127,19 +135,12 @@ function Header() {
                             </div>
                         )}
                     </div>
-
                     <Link to="/wishlist" onClick={() => setMenuOpen(false)} aria-label={`Wishlist${wishlistItems.length > 0 ? `, ${wishlistItems.length} items` : ""}`} className="flex flex-col items-center text-gray-700 hover:text-blue-600">
                         <span className="relative">
                             <i className="fa-regular fa-heart text-lg sm:text-xl"></i>
-                            {/* {wishlistItems.length > 0 && (
-                                <span className="absolute -right-3 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
-                                    {wishlistItems.length}
-                                </span>
-                            )} */}
                         </span>
                         <span className="text-[10px] font-semibold sm:text-xs">Wishlist</span>
                     </Link>
-
                     <Link to="/cart" onClick={() => setMenuOpen(false)} aria-label={`Cart, ${cartCount} items`} className="relative flex items-center justify-center rounded-lg bg-blue-600 p-2.5 text-white hover:bg-blue-700 sm:gap-2 sm:px-4 sm:py-2">
                         <i className="fa-solid fa-cart-shopping text-base"></i>
                         <span className="hidden sm:inline">Cart</span>
@@ -149,7 +150,6 @@ function Header() {
                             </span>
                         )}
                     </Link>
-
                     <button type="button" onClick={() => setMenuOpen(!menuOpen)} className="text-xl text-gray-700 hover:text-blue-600 md:hidden" aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={menuOpen}>
                         <i className={`fa-solid ${menuOpen ? "fa-xmark" : "fa-bars"}`}></i>
                     </button>

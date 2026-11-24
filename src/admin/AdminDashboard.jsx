@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 function AdminDashboard() {
@@ -14,13 +13,10 @@ function AdminDashboard() {
                         credentials: "include",
                     }
                 );
-
                 const data = await response.json();
-
                 if (!response.ok) {
                     throw new Error(data.message || "Access denied");
                 }
-
                 setMessage(data.message);
             } catch (error) {
                 setMessage(error.message);
@@ -28,14 +24,11 @@ function AdminDashboard() {
                 setLoading(false);
             }
         };
-
         fetchDashboard();
     }, []);
-
     if (loading) {
         return <p>Loading dashboard...</p>;
     }
-
     return (
         <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-2">

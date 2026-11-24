@@ -14,6 +14,11 @@ import OrderSuccess from "./Pages/OrderSuccess";
 import MyOrders from "./Pages/MyOrders";
 import AdminLayout from "./admin/AdminLayout";
 import AdminDashboard from "./admin/AdminDashboard";
+import AdminProducts from "./admin/AdminProducts";
+import AdminOrders from "./admin/AdminOrders";
+import AdminCustomers from "./admin/AdminCustomers";
+import AdminCategories from "./admin/AdminCategories";
+
 
 function AppLayout() {
   const location = useLocation();
@@ -34,8 +39,13 @@ function AppLayout() {
         <Route path="/profile" element={<EditProfile />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/my-orders" element={<MyOrders />} />
+
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/products" element={<AdminProducts/>} />
+          <Route path="/admin/orders" element={<AdminOrders/>}/>
+          <Route path="/admin/customers" element={<AdminCustomers/>}/>
+          <Route path="/admin/categories" element={<AdminCategories/>}/>
         </Route>
       </Routes>
 

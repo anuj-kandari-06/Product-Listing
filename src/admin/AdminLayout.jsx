@@ -11,7 +11,7 @@ function AdminLayout() {
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
-            <aside className="w-64 bg-gray-900 text-white min-h-screen p-5">
+            <aside className="w-64 shrink-0 bg-gray-900 text-white h-screen sticky top-0 p-5 overflow-y-auto">
                 <h1 className="text-2xl font-bold mb-10">ShopMart Admin</h1>
                 <nav className="space-y-2">
                     {menuItems.map((item) => (
@@ -32,7 +32,7 @@ function AdminLayout() {
                     ))}
                 </nav>
             </aside>
-            <main className="flex-1 p-8 min-w-0">
+            <main className="flex-1 min-w-0 min-h-screen p-8">
                 <Outlet />
             </main>
         </div>
