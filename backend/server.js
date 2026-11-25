@@ -451,6 +451,24 @@ app.post("/api/orders", async(req, res)=>{
     }
 });
 
+app.get("/api/admin/orders", adminMiddleware,async (req, res)=>{
+    try{
+        const orders = await Order.find()
+        .populate("user", "name email mobile")
+        .sort({createdAt: -1});
+
+        return res.status(200).json({
+            success:true,
+            orders,
+        })
+    }catch(error){
+        console.error("Admin orders error:", error);
+        return res.status(500).json({
+            message:"Unable to fetch orders",
+        });
+    }
+});
+
 app.get("/api/my-orders", async(req, res)=>{
     try{
         if(!req.session.userId) {

@@ -23,10 +23,11 @@ import AdminCategories from "./admin/AdminCategories";
 function AppLayout() {
   const location = useLocation();
   const isShippingPage = location.pathname === "/shipping";
+  const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
     <>
-      {!isShippingPage && <Header />}
+      {!isShippingPage && !isAdminPage && <Header />}
 
       <Routes>
         <Route path="/" element={<ProductListing />} />
@@ -49,7 +50,7 @@ function AppLayout() {
         </Route>
       </Routes>
 
-      {!isShippingPage && <Footer />}
+      {!isShippingPage && !isAdminPage && <Footer />}
     </>
   );
 }
