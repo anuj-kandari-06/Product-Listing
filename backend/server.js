@@ -9,6 +9,7 @@ import session from "express-session";
 import MongoStore from "connect-mongo";
 import Order from "./Order.js";
 import adminMiddleware from "./middleware/adminMiddleware.js";
+import Product from "./Product.js";
 
 dotenv.config();
 
@@ -172,7 +173,7 @@ app.post("/api/login", async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role:user.role || "user",
+                role: user.role || "user",
             },
         });
     } catch (error) {
@@ -214,13 +215,109 @@ app.get("/api/me", async (req, res) => {
     }
 });
 
-app.get("/api/admin/dashboard", adminMiddleware, (req,res) =>{
+app.get("/api/admin/dashboard", adminMiddleware, (req, res) => {
     return res.status(200).json({
         message: "Welcome To The Admin Dashboard",
         success: true,
     });
 });
 
+app.get("/api/admin/products", adminMiddleware, async (req, res) => {
+    try {
+        const allproducts = await Product.find().sort({ createdAt: -1 });
+        return res.status(200).json({
+            products: allproducts
+        });
+    } catch (error) {
+        console.error("Fetch products error:", error);
+        return res.status(500).json({
+            message: "Unable to fetch products"
+        });
+    }
+});
+
+app.post("/api/admin/products", adminMiddleware, async (req, res) => {
+    try {
+        const {
+            title,
+            brand,
+            price,
+            discountPercentage,
+            category,
+            stock,
+            thumbnail,
+            description
+        } = req.body;
+
+        if (!title || !category || price === undefined || !Number.isFinite(Number(price)) || Number(price) < 0) {
+            return res.status(400).json({ message: "Please enter valid product details" });
+        }
+
+        const product = await Product.create({
+            title,
+            brand,
+            price: Number(price),
+            discountPercentage: Number(discountPercentage) || 0,
+            category,
+            stock: Number(stock) || 0,
+            thumbnail,
+            description
+        });
+        res.status(201).json({
+            message: "Product added successfully",
+            product
+        });
+    } catch (error) {
+        console.error("Add product error:", error);
+        res.status(500).json({ message: "Unable to add product" });
+    }
+});
+
+app.put("/api/admin/products/:id", adminMiddleware, async(req, res)=>{
+    try{
+        const updatedProduct = await Product.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new:true,
+                runValidators:true
+            }
+        );
+        if(!updatedProduct){
+            return res.status(404).json({
+                message:"Product not found"
+            });
+        }
+        res.status(200).json({
+            message:"Product updated successfully",
+            product: updatedProduct
+        });
+    }catch(error){
+        console.error("Update product error:", error);
+        res.status(500).json({
+            message:"Unable to update product"
+        });
+    }
+});
+
+app.delete("/api/admin/products/:id", adminMiddleware, async(req, res)=>{
+    try{
+        const deletedProduct = await Product.findByIdAndUpdate(req.params.id);
+ if(!deletedProduct){
+    return res.status(404).json({
+        message:"Product not found"
+    });
+ }
+ res.status(200).json({
+    message:"Product deleted successfully"
+ });
+    }catch(error){
+        console.error("Delete product error:", error),
+        res.status(500).json({
+            message:"Unable to delete product"
+        });
+    }
+});
 
 app.get("/api/cart-wishlist", async (req, res) => {
     try {
@@ -414,78 +511,78 @@ app.put("/api/profile", async (req, res) => {
     }
 });
 
-app.post("/api/orders", async(req, res)=>{
-    try{
-        if(!req.session.userId){
+app.post("/api/orders", async (req, res) => {
+    try {
+        if (!req.session.userId) {
             return res.status(401).json({
                 message: "Please login first",
             });
         }
-        const{items, shippingAddress, paymentMode,} = req.body;
-        if(!Array.isArray(items) || items.length === 0 || !shippingAddress || !paymentMode )
-         { return res.status(400).json({
-            message :"Incomplete order details",
-         });
+        const { items, shippingAddress, paymentMode, } = req.body;
+        if (!Array.isArray(items) || items.length === 0 || !shippingAddress || !paymentMode) {
+            return res.status(400).json({
+                message: "Incomplete order details",
+            });
         }
-        const totalAmount = items.reduce((total, item)=>{
-            return total + Number(item.price)*Number(item.quantity);
+        const totalAmount = items.reduce((total, item) => {
+            return total + Number(item.price) * Number(item.quantity);
         }, 0);
-        if(!Number.isFinite(totalAmount) || items.some(item => !Number.isFinite(Number(item.price)) || Number(item.price) < 0 || !Number.isInteger(Number(item.quantity)) || Number(item.quantity)<1 )
+        if (!Number.isFinite(totalAmount) || items.some(item => !Number.isFinite(Number(item.price)) || Number(item.price) < 0 || !Number.isInteger(Number(item.quantity)) || Number(item.quantity) < 1)
         ) {
-    return res.status(400).json({
-        message: "Invalid product details",
-    });
-    }
-    const order = await Order.create({
-        user: req.session.userId,
-        items, shippingAddress, paymentMode, totalAmount,
-    });
-    res.status(201).json({
-        message : "Order placed successfully", order,
-    });
-    }catch(error){
+            return res.status(400).json({
+                message: "Invalid product details",
+            });
+        }
+        const order = await Order.create({
+            user: req.session.userId,
+            items, shippingAddress, paymentMode, totalAmount,
+        });
+        res.status(201).json({
+            message: "Order placed successfully", order,
+        });
+    } catch (error) {
         console.error("Place order error:", error);
         res.status(500).json({
-            message:"Unable to place order",
+            message: "Unable to place order",
         });
     }
 });
 
-app.get("/api/admin/orders", adminMiddleware,async (req, res)=>{
-    try{
+app.get("/api/admin/orders", adminMiddleware, async (req, res) => {
+    try {
         const orders = await Order.find()
-        .populate("user", "name email mobile")
-        .sort({createdAt: -1});
+            .populate("user", "name email mobile")
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
-            success:true,
+            success: true,
             orders,
         })
-    }catch(error){
+    } catch (error) {
         console.error("Admin orders error:", error);
         return res.status(500).json({
-            message:"Unable to fetch orders",
+            message: "Unable to fetch orders",
         });
     }
 });
 
-app.get("/api/my-orders", async(req, res)=>{
-    try{
-        if(!req.session.userId) {
+app.get("/api/my-orders", async (req, res) => {
+    try {
+        if (!req.session.userId) {
             return res.status(401).json({
                 message: "Please login first",
             });
         }
         const orders = await Order.find({
             user: req.session.userId,
-        }).sort({createdAt:-1});
-        res.status(200).json({orders});
-    }catch(error) {
-            console.error("Fetch orders error:", error);
-            res.status(500).json({
-                message: "Unable to fetch orders",
-            });
-        }
+        }).sort({ createdAt: -1 });
+        res.status(200).json({ orders });
+    } catch (error) {
+        console.error("Fetch orders error:", error);
+        res.status(500).json({
+            message: "Unable to fetch orders",
+        });
+    }
 });
 
 const PORT = 5000;
