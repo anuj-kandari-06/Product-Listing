@@ -4,6 +4,7 @@ function AdminProducts() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editProductId, setEditProductId] = useState(null);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -31,24 +32,36 @@ function AdminProducts() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
+        setFormError("");
 
+        const isEditing = Boolean(editProductId);
         try {
-            const response = await fetch("http://localhost:5000/api/admin/products", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include",
-                body: JSON.stringify(formData)
-            });
+            const response = await fetch(isEditing ? `http://localhost:5000/api/admin/products/${editProductId}`
+                : "http://localhost:5000/api/admin/products/",
+                {
+                    method: isEditing ? "PUT" : "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(formData)
+                });
             const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(data.message || "Unable to add product");
             }
-            setProducts((prev) => [data.product, ...prev]);
+            if (isEditing) {
+                setProducts((prev) =>
+                    prev.map((product) =>
+                        product._id === editProductId ? data.product : product
+                    )
+                );
+            } else {
+                setProducts((prev) => [data.product, ...prev]);
+            }
             setIsModalOpen(false);
-
+            setEditProductId(null);
             setFormData({
                 title: "",
                 brand: "",
@@ -66,8 +79,51 @@ function AdminProducts() {
         }
     };
 
+    const handleEdit = (product) => {
+        setEditProductId(product._id);
+
+        setFormData({
+            title: product.title || "",
+            brand: product.brand || "",
+            price: product.price ?? "",
+            discountPercentage: product.discountPercentage ?? "",
+            category: product.category || "",
+            stock: product.stock ?? "",
+            thumbnail: product.thumbnail || "",
+            description: product.description || "",
+        });
+
+        setFormError("");
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = async (productId) => {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this product ?"
+        );
+        if (!confirmDelete) return;
+        try {
+            const response = await fetch(`http://localhost:5000/api/admin/products/${productId}`,
+                {
+                    method: "DELETE",
+                    credentials: "include",
+                }
+            );
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Unable to delete this product");
+            }
+            setProducts((prev) =>
+                prev.filter((product) => product._id !== productId)
+            );
+        } catch (error) {
+            alert(error.message);
+        }
+    };
+
     const handleCancel = () => {
         setIsModalOpen(false);
+        setEditProductId(null);
         setFormError("");
         setFormData({
             title: "",
@@ -136,6 +192,7 @@ function AdminProducts() {
                             <th className="p-4">Category</th>
                             <th className="p-4">Price</th>
                             <th className="p-4">Stock</th>
+                            <th className="p-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -158,6 +215,19 @@ function AdminProducts() {
                                 <td className="p-4 capitalize">{product.category}</td>
                                 <td className="p-4">${product.price}</td>
                                 <td className="p-4">{product.stock}</td>
+                                <td className="P-4">{product._id ? (
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => handleEdit(product)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-sm">
+                                            Edit
+                                        </button>
+                                        <button onClick={() => handleDelete(product._id)} className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm">
+                                            Delete
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <span className="text-gray-400 text-sm">External</span>
+                                )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -167,7 +237,7 @@ function AdminProducts() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800">Add New Product</h2>
+                            <h2 className="text-2xl font-bold text-gray-800">{editProductId ? "Edit Product" : "Add New Product"}</h2>
                             <button type="button" onClick={() => setIsModalOpen(false)} className="text-gray-500 text-2xl">&times;</button>
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -204,7 +274,7 @@ function AdminProducts() {
                                 <textarea rows="4" name="description" value={formData.description} onChange={handleChange} placeholder="Enter product description" className="w-full border rounded-md p-3 resize-none" />
                             </div>
                             <div className="md:col-span-2 flex justify-end gap-3">
-                                <button type="button" onChange={handleCancel} className="px-5 py-3 border rounded-md">Cancel</button>
+                                <button type="button" onClick={handleCancel} className="px-5 py-3 border rounded-md">Cancel</button>
                                 {formError && (
                                     <p className="md:col-span-2 text-red-500">{formError}</p>
                                 )}

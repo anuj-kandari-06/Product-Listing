@@ -16,31 +16,72 @@ function ProductDetails() {
     const isWishlisted = wishlistItems.some((item) => item.id === products?.id);
 
     useEffect(() => {
-        fetch("https://dummyjson.com/products?limit=0")
-            .then((response) => response.json())
-            .then((data) => {
-                const product = data.products.find((item) => {
-                    const productSlug = item.title
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "-")
-                        .replace(/(^-|-$)/g, "");
-                    return productSlug === slug;
-                });
+        const fetchProduct = async () => {
+            try {
+                const [dummyResponse, mongoResponse] = await Promise.all([
+                    fetch("https://dummyjson.com/products?limit=0"),
+                    fetch("http://localhost:5000/api/products")
+                ]);
+                if (!dummyResponse.ok || !mongoResponse.ok) {
+                    throw new Error("Unable to fetch products");
+                }
+                const dummyData = await dummyResponse.json();
+                const mongoData = await mongoResponse.json();
+
+                const dummyProducts = dummyData.products || [];
+                const mongoProducts = mongoData.products || [];
+
+                const createSlug = (title) => title.toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/(^-|-$)/g, "");
+
+                let product = mongoProducts.find(
+                    (item) => createSlug(item.title) === slug
+                );
+                if (product) {
+                    product = {
+                        ...product,
+                        id: product.id || product._id,
+                        images: product.images?.length ? product.images : [product.thumbnail].filter(Boolean), rating: product.rating || 0, discountPercentage: product.discountPercentage || 0
+                    };
+                    const related = mongoProducts.filter((item) =>
+                        item._id !== product._id && item.category === product.category)
+                        .slice(0, 8)
+                        .map((item) => ({
+                            ...item,
+                            id: item.id || item._id,
+                            images: item.images?.length ? item.images
+                                : [item.thumbnail].filter(Boolean),
+                            rating: item.rating || 0,
+                            discountPercentage: item.discountPercentage || 0
+                        }));
+                    setProduct(product);
+                    setRelatedProducts(related);
+                    setSelectedImage(product.images[0] || product.thumbnail);
+                    return;
+                }
+
+                product = dummyProducts.find(
+                    (item) => createSlug(item.title) === slug
+                );
                 if (product) {
                     setProduct(product);
                     setSelectedImage(product.images[0] || product.thumbnail);
-                    const related = getRelatedProducts(product, data.products);
-                    setRelatedProducts(related);
+                    setRelatedProducts(
+                        getRelatedProducts(product, dummyProducts)
+                    );
                 } else {
                     setProduct(false);
                     setRelatedProducts([]);
                 }
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error("products fetch error:", error);
                 setProduct(false);
-            });
+            }
+        };
+        fetchProduct();
     }, [slug]);
+
 
     if (products === null) {
         return (

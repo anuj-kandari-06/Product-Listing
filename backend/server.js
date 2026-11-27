@@ -236,6 +236,20 @@ app.get("/api/admin/products", adminMiddleware, async (req, res) => {
     }
 });
 
+app.get("/api/products", async(req, res)=>{
+    try{
+        const products = await Product.find().sort({createdAt: -1});
+        return res.status(200).json({
+            products
+        });
+    }catch(error){
+        console.error("Public products fetch error:",error);
+        return res.status(500).json({
+            message:"Unable to fetch products"
+        });
+    }
+});
+
 app.post("/api/admin/products", adminMiddleware, async (req, res) => {
     try {
         const {
@@ -302,7 +316,7 @@ app.put("/api/admin/products/:id", adminMiddleware, async(req, res)=>{
 
 app.delete("/api/admin/products/:id", adminMiddleware, async(req, res)=>{
     try{
-        const deletedProduct = await Product.findByIdAndUpdate(req.params.id);
+        const deletedProduct = await Product.findByIdAndDelete(req.params.id);
  if(!deletedProduct){
     return res.status(404).json({
         message:"Product not found"

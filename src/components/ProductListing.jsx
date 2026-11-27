@@ -27,25 +27,49 @@ function ProductListing() {
     const [isFiltering, setIsFiltering] = useState(false);
 
     useEffect(() => {
-        fetch("https://dummyjson.com/products?limit=0")
-            .then((response) => response.json())
-            .then((data) => {
-                setProducts(data.products);
-                const prices = data.products.map((product) => product.price);
-                const lowestPrice = Math.floor(Math.min(...prices));
-                const highestPrice = Math.max(...prices);
-                setMinPrice(lowestPrice);
-                setMaxPrice(highestPrice);
-                setPriceMin(lowestPrice);
-                setPriceMax(highestPrice);
-                const allCategories = [...new Set(data.products.map((product) => product.category))];
-                const allBrands = [...new Set(data.products.map((product) => product.brand).filter(Boolean))];
-                setCategories(allCategories);
-                setBrands(allBrands);
-            })
-            .catch((error) => {
+        const fetchProducts = async () => {
+            try {
+                const [dummyResponse, mongoResponse] = await Promise.all([
+                    fetch("https://dummyjson.com/products?limit=0"),
+                    fetch("http://localhost:5000/api/products")
+                ]);
+
+                let dummyProducts = [];
+                let mongoProducts = [];
+
+                if (dummyResponse.ok) {
+                    const dummyData = await dummyResponse.json();
+                    dummyProducts = dummyData.products || [];
+                }
+
+                if (mongoResponse.ok) {
+                    const mongoData = await mongoResponse.json();
+                    mongoProducts = (mongoData.products || []).map((product) => ({
+                        ...product,
+                        id: product._id,
+                        rating: product.rating || 0
+                    }));
+                }
+
+                const allProducts = [...mongoProducts, ...dummyProducts];
+                setProducts(allProducts);
+
+                if (allProducts.length > 0) {
+                    const prices = allProducts.map((product) => product.price);
+                    const lowestPrice = Math.floor(Math.min(...prices));
+                    const highestPrice = Math.max(...prices);
+                    setMinPrice(lowestPrice);
+                    setMaxPrice(highestPrice);
+                    setPriceMin(lowestPrice);
+                    setPriceMax(highestPrice);
+                    setCategories([...new Set(allProducts.map((product) => product.category))]);
+                    setBrands([...new Set(allProducts.map((product) => product.brand).filter(Boolean))]);
+                }
+            } catch (error) {
                 console.error("Products fetch error:", error);
-            });
+            }
+        };
+        fetchProducts();
     }, []);
 
     useEffect(() => {
@@ -55,7 +79,7 @@ function ProductListing() {
         }, 500);
         return () => clearTimeout(timer);
     }, [selectedCategories, selectedBrands, priceMin, priceMax]);
-    
+
     const visibleCategories = [...new Set([...Products.filter((product) => selectedBrands.length === 0 || selectedBrands.includes(product.brand)
     )
         .map((product) => product.category),
